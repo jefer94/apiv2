@@ -21,7 +21,7 @@
 
 # Dumentation for Breathecode utilities and testing
 
-[Read the docs](docs/DOCS.md)
+[Read the docs](docs/README.md)
 
 # Additional Resources
 
