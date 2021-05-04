@@ -61,11 +61,11 @@ class TestSuite(APITestCase, GenerateModelsMixin):
         self.assertEqual(len(model), 1)
 
         # self.generate_models return one dictionary of models, we should
-        # get the model with dict or list syntaxt
+        # get the model with dict or list syntax
         self.assertTrue(isinstance(model['people'], People))
 
         # self.generate_models return one dictionary of models, we should
-        # get the model with class attribute or javascript object syntaxt
+        # get the model with class attribute or javascript object syntax
         self.assertTrue(isinstance(model.people, People))
 
         # the values was passed through of {model_name}_kwargs are assigned
