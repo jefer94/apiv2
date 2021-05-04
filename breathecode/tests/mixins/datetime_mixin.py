@@ -13,10 +13,9 @@ def get_utc():
 UTC = get_utc()
 
 class DatetimeMixin():
-    """Headers mixin"""
+    """Datetime mixin"""
     def datetime_now(*args, **kwargs):
         return timezone.now()
-
 
     def datetime_to_iso(self, date=datetime.utcnow()) -> str:
         return re.sub(

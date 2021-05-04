@@ -19,6 +19,10 @@
 
 [Read the docs](https://documenter.getpostman.com/view/2432393/T1LPC6ef)
 
+# Dumentation for Breathecode utilities and testing
+
+[Read the docs](docs/DOCS.md)
+
 # Additional Resources
 
 ## Online editor
