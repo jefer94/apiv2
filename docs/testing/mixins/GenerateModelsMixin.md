@@ -129,10 +129,6 @@ class TestSuite(APITestCase, GenerateModelsMixin):
         city_kwargs = {'name': 'Fólkvangr'}
         base = self.generate_models(city=True, city_kwargs=city_kwargs)
 
-        # we can pass in it case the model city that is stored in base var, and
-        # through of models named keywork we can pass the previous models, it
-        # should be util to resolve cases of relationships
-
         # we can pass one model, in it case the model city stored in base vars,
         # just need add the {model}=base.{model} or {model}=base['{model}']
         models = [self.generate_models(people=True, city=base.city) for _ in range(0, 3)]
