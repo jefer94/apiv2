@@ -76,8 +76,7 @@ class TestSuite(APITestCase, GenerateModelsMixin):
     🔽🔽🔽 Generate one list of three peoples
     """
     def test_generate_models__list_of_three_peoples():
-        # get credentials to the requests through of self.client.{method_name}
-        # and generate one user
+        # we can generate a list of dictionaries with one generator
         models = [self.generate_models(people=True) for _ in range(0, 3)]
 
         # the result of previous generator is one list of three dictionary of
