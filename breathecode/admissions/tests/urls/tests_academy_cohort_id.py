@@ -1,6 +1,7 @@
 """
 Test /cohort
 """
+from datetime import datetime
 from django.utils import timezone
 from breathecode.admissions.caches import CohortCache
 import re
@@ -158,6 +159,71 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
         self.assertEqual(self.all_cohort_dict(), [{
             **self.model_to_dict(model, 'cohort'),
             'never_ends': True,
+        }])
+
+
+    @patch(GOOGLE_CLOUD_PATH['client'], apply_google_cloud_client_mock())
+    @patch(GOOGLE_CLOUD_PATH['bucket'], apply_google_cloud_bucket_mock())
+    @patch(GOOGLE_CLOUD_PATH['blob'], apply_google_cloud_blob_mock())
+    def test_academy_cohort_put____________(self):
+        """Test /academy/cohort without auth"""
+        self.headers(academy=1)
+        cohort_kwargs = {
+            'slug': 'miami-xxxi',
+            'name': 'Miami XXXI',
+            'kickoff_date': self.datetime_to_iso(datetime(year=2021, month=12, day=6, hour=0, minute=0)),
+            'ending_date': self.datetime_to_iso(datetime(year=2022, month=5, day=27, hour=0, minute=0)),
+            'current_day': 0,
+            'stage': 'INACTIVE',
+            'private': False,
+            'never_ends': False,
+            'timezone': 0,
+            'language': 'en',
+        }
+        model = self.generate_models(authenticate=True, user=True, profile_academy=True,
+            capability='crud_cohort', role='potato', syllabus=True, cohort=True,
+            cohort_kwargs=cohort_kwargs)
+
+        url = reverse_lazy('admissions:academy_cohort_id', kwargs={'cohort_id': 1})
+        data = {
+            'kickoff_date': "2021-12-06T00:00:00Z",
+            'ending_date': None,
+            'language': "en",
+            'never_ends': True,
+            'slug': "miami-xxxi",
+            'syllabus':  model['certificate'].slug + '.v' + str(model['syllabus'].version),
+        }
+
+        response = self.client.put(url, data, format='json')
+        json = response.json()
+        cohort = model.cohort
+        expected = {
+            'id': cohort.id,
+            'slug': cohort.slug,
+            'name': cohort.name,
+            'never_ends': True,
+            'kickoff_date': self.datetime_to_iso(cohort.kickoff_date),
+            'current_day': cohort.current_day,
+            'academy': {
+                'id': cohort.academy.id,
+                'slug': cohort.academy.slug,
+                'name': cohort.academy.name,
+                'street_address': cohort.academy.street_address,
+                'country': cohort.academy.country.code,
+                'city': cohort.academy.city.id,
+            },
+            'syllabus': model['certificate'].slug + '.v' + str(model['syllabus'].version),
+            'ending_date': cohort.ending_date,
+            'stage': cohort.stage,
+            'language': cohort.language,
+            'created_at': self.datetime_to_iso(cohort.created_at),
+            'updated_at': self.datetime_to_iso(cohort.updated_at),
+        }
+
+        self.assertEqual(json, expected)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.all_cohort_dict(), [{
+            **self.model_to_dict(model, 'cohort'),
         }])
 
     @patch(GOOGLE_CLOUD_PATH['client'], apply_google_cloud_client_mock())
