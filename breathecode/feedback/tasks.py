@@ -1,3 +1,4 @@
+from breathecode.utils.validation_exception import ValidationException
 import logging
 from celery import shared_task, Task
 from django.utils import timezone

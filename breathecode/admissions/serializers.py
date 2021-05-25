@@ -155,7 +155,7 @@ class GetCohortSerializer(serpy.Serializer):
     syllabus = SyllabusSmallSerializer(required=False)
     academy = GetAcademySerializer()
     current_day = serpy.Field()
-    
+
 
 class GetSmallCohortSerializer(serpy.Serializer):
     """The serializer schema definition."""
@@ -384,10 +384,11 @@ class CohortUserSerializerMixin(serializers.ModelSerializer):
     index = -1
 
     def count_certificates_by_cohort(self, cohort, user_id):
-        return CohortUser.objects.filter(user_id=user_id, role='STUDENT', cohort__syllabus__certificate=cohort.syllabus.certificate).filter(Q(educational_status='ACTIVE') | Q(educational_status__isnull=True)).count()
-
-    def validate_just_one(self):
-        pass
+        return CohortUser.objects.filter(
+            Q(educational_status='ACTIVE') | Q(educational_status__isnull=True),
+            user_id=user_id,
+            role='STUDENT',
+            cohort__syllabus__certificate=cohort.syllabus.certificate).count()
 
     def validate(self, data):
         self.index = self.index + 1
@@ -397,7 +398,6 @@ class CohortUserSerializerMixin(serializers.ModelSerializer):
         cohort_id = self.context['cohort_id']
         user_id = self.context['user_id']
         disable_cohort_user_just_once = True
-        disable_certificate_validations = True
         body = request.data if is_many else [request.data]
         request_item = body[self.index]
         is_post_method = request.method == 'POST'

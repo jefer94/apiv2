@@ -35,6 +35,7 @@ class UserInviteSerializer(serpy.Serializer):
     status = serpy.Field()
     email = serpy.Field()
     sent_at = serpy.Field()
+    with_slack = serpy.Field()
     created_at = serpy.Field()
     first_name = serpy.Field()
     last_name = serpy.Field()
@@ -282,6 +283,7 @@ class MemberPOSTSerializer(serializers.ModelSerializer):
 
 
 class StudentPOSTSerializer(serializers.ModelSerializer):
+    with_slack = serializers.BooleanField(write_only=True, required=False)
     invite = serializers.BooleanField(write_only=True, required=False)
     cohort = serializers.IntegerField(write_only=True, required=False)
     user = serializers.IntegerField(write_only=True, required=False)
@@ -290,7 +292,7 @@ class StudentPOSTSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfileAcademy
         fields = ('email', 'user', 'first_name', 'last_name',
-                  'address', 'phone', 'invite', 'cohort', 'status')
+                  'address', 'phone', 'invite', 'with_slack', 'cohort', 'status')
 
     def validate(self, data):
         if 'email' in data:
@@ -299,7 +301,8 @@ class StudentPOSTSerializer(serializers.ModelSerializer):
         if "user" not in data:
             if "invite" not in data or data["invite"] != True:
                 raise ValidationException(
-                    "User does not exists, do you want to invite it?")
+                    "User does not exists, do you want to invite it?",
+                    slug="user-not-exists")
             elif "email" not in data:
                 raise ValidationException(
                     "Please specify user id or student email")
@@ -328,7 +331,7 @@ class StudentPOSTSerializer(serializers.ModelSerializer):
 
         role = Role.objects.filter(slug='student').first()
         if role is None:
-            raise ValidationException("Role student not found")
+            raise ValidationException("Role student not found", slug="role-student-not-found")
 
         user = None
         email = None
@@ -354,10 +357,14 @@ class StudentPOSTSerializer(serializers.ModelSerializer):
                 raise ValidationException(
                     "You already invited this user, check for previous invites and resend")
 
+            if not 'with_slack' in validated_data:
+                validated_data['with_slack'] = False
+
             invite = UserInvite(
                 email=validated_data['email'],
                 first_name=validated_data['first_name'],
                 last_name=validated_data['last_name'],
+                with_slack=validated_data['with_slack'],
                 academy=academy,
                 cohort=cohort,
                 role=role,
@@ -380,6 +387,12 @@ class StudentPOSTSerializer(serializers.ModelSerializer):
                 "LINK": url,
                 "FIST_NAME": validated_data['first_name']
             })
+
+        if 'invite' in validated_data:
+            del validated_data['invite']
+
+        if 'with_slack' in validated_data:
+            del validated_data['with_slack']
 
         return super().create({**validated_data, "email": email, "user": user, "academy": academy, "role": role, "status": status})
 

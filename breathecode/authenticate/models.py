@@ -66,6 +66,7 @@ class UserInvite(models.Model):
     last_name = models.CharField(max_length=100, default=None, null=True)
 
     token = models.CharField(max_length=255, unique=True)
+    with_slack = models.BooleanField(default=False)
 
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 

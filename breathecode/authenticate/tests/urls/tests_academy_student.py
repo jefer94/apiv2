@@ -10,8 +10,11 @@ from ..mixins.new_auth_test_case import AuthTestCase
 
 # TODO: this test is incompleted
 class AuthenticateTestSuite(AuthTestCase):
-    """Authentication test suite"""
-    def test_academy_student_without_auth(self):
+
+    """
+    🔽🔽🔽 Auth
+    """
+    def test_academy_student__without_auth(self):
         """Test /academy/student without auth"""
         url = reverse_lazy('authenticate:academy_student')
         response = self.client.get(url)
@@ -23,7 +26,7 @@ class AuthenticateTestSuite(AuthTestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_academy_student_without_capability(self):
+    def test_academy_student__without_capability(self):
         """Test /academy/student"""
         self.headers(academy=1)
         self.generate_models(authenticate=True)
@@ -38,7 +41,7 @@ class AuthenticateTestSuite(AuthTestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_academy_student_without_academy(self):
+    def test_academy_student__without_academy(self):
         """Test /academy/student"""
         self.headers(academy=1)
         role = 'konan'
@@ -55,7 +58,10 @@ class AuthenticateTestSuite(AuthTestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_academy_student_without_student(self):
+    """
+    🔽🔽🔽 Without data
+    """
+    def test_academy_student__without_student(self):
         """Test /academy/student"""
         self.headers(academy=1)
         role = 'konan'
@@ -79,6 +85,9 @@ class AuthenticateTestSuite(AuthTestCase):
             'user_id': 1
         }])
 
+    """
+    🔽🔽🔽 With data
+    """
     def test_academy_student(self):
         """Test /academy/student"""
         self.headers(academy=1)
@@ -129,7 +138,10 @@ class AuthenticateTestSuite(AuthTestCase):
             'user_id': 1
         }])
 
-    def test_academy_student_pagination_with_105(self):
+    """
+    🔽🔽🔽 Pagination
+    """
+    def test_academy_student__pagination__with_105(self):
         """Test /academy/student"""
         self.headers(academy=1)
         role = 'student'
@@ -186,7 +198,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'user_id': model['user'].id
         } for model in models])
 
-    def test_academy_student_pagination_first_five(self):
+    def test_academy_student__pagination__first_five(self):
         """Test /academy/student"""
         self.headers(academy=1)
         role = 'student'
@@ -250,7 +262,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'user_id': model['user'].id
         } for model in models])
 
-    def test_academy_student_pagination_last_five(self):
+    def test_academy_student__pagination__last_five(self):
         """Test /academy/student"""
         self.headers(academy=1)
         role = 'student'
@@ -314,75 +326,10 @@ class AuthenticateTestSuite(AuthTestCase):
             'user_id': model['user'].id
         } for model in models])
 
-    def test_academy_student_pagination_after_last_five(self):
-        """Test /academy/student"""
-        self.headers(academy=1)
-        role = 'student'
-        model = self.generate_models(authenticate=True, role=role,
-            capability='read_student', profile_academy=True)
-
-        base = model.copy()
-        del base['user']
-        del base['profile_academy']
-
-        models = [model] + [self.generate_models(profile_academy=True, models=base)
-            for _ in range(0, 9)]
-        url = reverse_lazy('authenticate:academy_student') + '?limit=5&offset=10'
-        response = self.client.get(url)
-        json = response.json()
-        expected = {
-            'count': 10,
-            'first': 'http://testserver/v1/auth/academy/student?limit=5',
-            'last': None,
-            'next': None,
-            'previous': 'http://testserver/v1/auth/academy/student?limit=5&offset=5',
-            'results': []
-        }
-
-        self.assertEqual(json, expected)
-        self.assertEqual(self.all_profile_academy_dict(), [{
-            'academy_id': 1,
-            'address': None,
-            'email': None,
-            'first_name': None,
-            'id': model['profile_academy'].id,
-            'last_name': None,
-            'phone': '',
-            'role_id': 'student',
-            'status': 'INVITED',
-            'user_id': model['user'].id
-        } for model in models])
-
-    def test_academy_student_delete_without_auth(self):
-        """Test /cohort/:id/user without auth"""
-        url = reverse_lazy('authenticate:academy_student')
-        response = self.client.delete(url)
-        json = response.json()
-        expected = {
-            'detail': 'Authentication credentials were not provided.',
-            'status_code': 401
-        }
-
-        self.assertEqual(json, expected)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(self.all_profile_academy_dict(), [])
-
-    def test_academy_student_delete_without_header(self):
-        """Test /cohort/:id/user without auth"""
-        model = self.generate_models(authenticate=True)
-        url = reverse_lazy('authenticate:academy_student')
-        response = self.client.delete(url)
-        json = response.json()
-        expected = {
-            'detail': 'Missing academy_id parameter expected for the endpoint url or \'Academy\' header',
-            'status_code': 403
-        }
-
-        self.assertEqual(json, expected)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(self.all_profile_academy_dict(), [])
-
-    def test_academy_student_delete_without_capability(self):
+    """
+    🔽🔽🔽 Method delete without capability
+    """
+    def test_academy_student__delete__without_capability(self):
         """Test /cohort/:id/user without auth"""
         self.headers(academy=1)
         model = self.generate_models(authenticate=True)
@@ -398,7 +345,10 @@ class AuthenticateTestSuite(AuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(self.all_profile_academy_dict(), [])
 
-    def test_academy_student_delete_without_args_in_url_or_bulk(self):
+    """
+    🔽🔽🔽 Delete without vars in querystring or bulk mode
+    """
+    def test_academy_student__delete__without_args_in_url_or_bulk(self):
         """Test /cohort/:id/user without auth"""
         self.headers(academy=1)
         model = self.generate_models(authenticate=True, profile_academy=True,
@@ -417,7 +367,10 @@ class AuthenticateTestSuite(AuthTestCase):
             **self.model_to_dict(model, 'profile_academy'),
         }])
 
-    def test_academy_student_delete_in_bulk_with_one(self):
+    """
+    🔽🔽🔽 Delete in bulk mode
+    """
+    def test_academy_student__delete__in_bulk__with_one(self):
         """Test /cohort/:id/user without auth"""
         self.headers(academy=1)
         many_fields = ['id']
@@ -446,7 +399,7 @@ class AuthenticateTestSuite(AuthTestCase):
             self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
             self.assertEqual(self.all_profile_academy_dict(), [])
 
-    def test_academy_student_delete_in_bulk_with_two(self):
+    def test_academy_student__delete__in_bulk__with_two(self):
         """Test /cohort/:id/user without auth"""
         self.headers(academy=1)
         many_fields = ['id']
@@ -487,7 +440,10 @@ class AuthenticateTestSuite(AuthTestCase):
             self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
             self.assertEqual(self.all_profile_academy_dict(), [])
 
-    def test_academy_student_delete_in_bulk_with_two_but_is_not_student(self):
+    """
+    🔽🔽🔽 Delete in bulk mode just remove students
+    """
+    def test_academy_student__delete__in_bulk__with_two__but_is_not_student(self):
         """Test /cohort/:id/user without auth"""
         self.headers(academy=1)
         many_fields = ['id']
@@ -534,3 +490,135 @@ class AuthenticateTestSuite(AuthTestCase):
 
             for model in ProfileAcademy.objects.all():
                 model.delete()
+
+    """
+    🔽🔽🔽 Method post without capability
+    """
+    def test_academy_student__post__without_capability(self):
+        """Test /cohort/:id/user without auth"""
+        self.headers(academy=1)
+        model = self.generate_models(authenticate=True)
+        url = reverse_lazy('authenticate:academy_student')
+        data = {}
+        response = self.client.post(url, data)
+        json = response.json()
+        expected = {
+            'detail': "You (user: 1) don't have this capability: crud_student for academy 1",
+            'status_code': 403
+        }
+
+        self.assertEqual(json, expected)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.all_profile_academy_dict(), [])
+
+    """
+    🔽🔽🔽 Method post without user
+    """
+    def test_academy_student__post__without_user(self):
+        """Test /cohort/:id/user without auth"""
+        self.headers(academy=1)
+        model = self.generate_models(authenticate=True, profile_academy=True,
+            role='potato', capability='crud_student')
+        url = reverse_lazy('authenticate:academy_student')
+        data = {}
+        response = self.client.post(url, data)
+        json = response.json()
+        expected = {
+            'detail': 'user-not-exists',
+            'status_code': 400
+        }
+
+        self.assertEqual(json, expected)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(self.all_profile_academy_dict(), [{
+            **self.model_to_dict(model, 'profile_academy'),
+        }])
+
+    """
+    🔽🔽🔽 Method post with user in the staff
+    """
+    def test_academy_student__post__with_user__with_profile_academy(self):
+        """Test /cohort/:id/user without auth"""
+        self.headers(academy=1)
+        model = self.generate_models(authenticate=True, profile_academy=True,
+            role='potato', capability='crud_student')
+        url = reverse_lazy('authenticate:academy_student')
+        data = {
+            'user': model.user.id
+        }
+        response = self.client.post(url, data)
+        json = response.json()
+        expected = {
+            'non_field_errors': ['This user is already a member of this academy staff']
+        }
+
+        self.assertEqual(json, expected)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(self.all_profile_academy_dict(), [{
+            **self.model_to_dict(model, 'profile_academy'),
+        }])
+
+    """
+    🔽🔽🔽 Method post with user, without role student
+    """
+    def test_academy_student__post__with_user__without_role_student(self):
+        """Test /cohort/:id/user without auth"""
+        self.headers(academy=1)
+        base = self.generate_models(authenticate=True, profile_academy=True,
+            role='potato', capability='crud_student')
+
+        model = self.generate_models(user=True)
+        url = reverse_lazy('authenticate:academy_student')
+        data = {
+            'user': model.user.id
+        }
+        response = self.client.post(url, data)
+        json = response.json()
+        expected = {'detail': 'role-student-not-found', 'status_code': 400}
+
+        self.assertEqual(json, expected)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(self.all_profile_academy_dict(), [{
+            **self.model_to_dict(base, 'profile_academy'),
+        }])
+
+    """
+    🔽🔽🔽 Method post with user, without role student
+    """
+    def test_academy_student__post(self):
+        """Test /cohort/:id/user without auth"""
+        self.headers(academy=1)
+        base = self.generate_models(authenticate=True, profile_academy=True,
+            role='student', capability='crud_student')
+
+        model = self.generate_models(user=True)
+        url = reverse_lazy('authenticate:academy_student')
+        data = {
+            'user': model.user.id
+        }
+        response = self.client.post(url, data)
+        json = response.json()
+        expected = {'address': None,
+            'email': model.user.email,
+            'first_name': None,
+            'last_name': None,
+            'phone': '',
+            'status': 'ACTIVE'
+        }
+
+        self.assertEqual(json, expected)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.all_profile_academy_dict(), [{
+            **self.model_to_dict(base, 'profile_academy'),
+        }, {
+            'id': 2,
+            'address': None,
+            'academy_id': 1,
+            'email': model.user.email,
+            'first_name': None,
+            'last_name': None,
+            'phone': '',
+            'role_id': 'student',
+            'status': 'ACTIVE',
+            'user_id': 2
+        }])
