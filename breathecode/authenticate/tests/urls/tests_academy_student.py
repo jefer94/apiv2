@@ -583,11 +583,12 @@ class AuthenticateTestSuite(AuthTestCase):
         }])
 
     """
-    🔽🔽🔽 Method post with user, without role student
+    🔽🔽🔽 Method post
     """
     def test_academy_student__post(self):
         """Test /cohort/:id/user without auth"""
         self.headers(academy=1)
+        # TODO: https://api.slack.com/methods/admin.users.invite
         base = self.generate_models(authenticate=True, profile_academy=True,
             role='student', capability='crud_student')
 
