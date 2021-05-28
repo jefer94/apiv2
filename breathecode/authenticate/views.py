@@ -145,6 +145,8 @@ class MemberView(APIView, HeaderLimitOffsetPagination, GenerateLookupsMixin):
             many_fields=['id']
         )
 
+        print("printing items", lookups)
+
         if lookups and user_id:
             raise ValidationException('user_id or cohort_id was provided in url '
                                       'in bulk mode request, use querystring style instead', code=400)
@@ -154,6 +156,7 @@ class MemberView(APIView, HeaderLimitOffsetPagination, GenerateLookupsMixin):
                                                   academy__id=academy_id).exclude(role__slug="student")
 
             for item in items:
+
                 item.delete()
 
             return Response(None, status=status.HTTP_204_NO_CONTENT)
@@ -164,6 +167,40 @@ class MemberView(APIView, HeaderLimitOffsetPagination, GenerateLookupsMixin):
             raise ValidationException("Member not found", 404)
         member.delete()
         return Response(None, status=status.HTTP_204_NO_CONTENT)
+
+
+class MeInviteView(APIView, HeaderLimitOffsetPagination, GenerateLookupsMixin):
+
+    def get(self, request):
+
+        if request.user is None:
+            raise ValidationException("User not found", 404)
+
+        invite = UserInvite.objects.filter(email=request.user.email, status='PENDING').first()
+        if invite is None:
+            raise ValidationException("No pending invite was found", 404)
+
+        serializer = UserInviteSerializer(invite, many=False)
+        return Response(serializer.data)
+    
+
+class ProfileInviteView(APIView, HeaderLimitOffsetPagination, GenerateLookupsMixin):
+
+    @capable_of('read_invite')
+    def get(self, request, academy_id, profileacademy_id):
+
+        profile = ProfileAcademy.objects.filter(
+            academy__id=academy_id, id=profileacademy_id).first()
+        if profile is None:
+            raise ValidationException("Profile not found", 404)
+
+        invite = UserInvite.objects.filter(
+            academy__id=academy_id, email=profile.email, status='PENDING').first()
+        if invite is None:
+            raise ValidationException("No pending invite was found", 404)
+
+        serializer = UserInviteSerializer(invite, many=False)
+        return Response(serializer.data)
 
 
 class StudentView(APIView, HeaderLimitOffsetPagination, GenerateLookupsMixin):
@@ -257,6 +294,7 @@ class StudentView(APIView, HeaderLimitOffsetPagination, GenerateLookupsMixin):
                 **lookups, academy__id=academy_id, role__slug='student')
 
             for item in items:
+
                 item.delete()
 
             return Response(None, status=status.HTTP_204_NO_CONTENT)
@@ -464,13 +502,15 @@ def save_github_token(request):
 
             # TODO: if user_id: User.objects.filter(id=user_id).first()
 
-            user = User.objects.filter(Q(credentialsgithub__github_id=github_user['id']) | Q(email__iexact=github_user['email'])).first()
+            user = User.objects.filter(Q(credentialsgithub__github_id=github_user['id']) | Q(
+                email__iexact=github_user['email'])).first()
             if user is None:
                 user = User(
                     username=github_user['email'], email=github_user['email'])
                 user.save()
 
-            CredentialsGithub.objects.filter(github_id=github_user['id']).delete()
+            CredentialsGithub.objects.filter(
+                github_id=github_user['id']).delete()
             github_credentials = CredentialsGithub(
                 github_id=github_user['id'],
                 user=user,
@@ -902,7 +942,7 @@ class AcademyInviteView(APIView):
     def put(self, request, pa_id=None, academy_id=None):
         if pa_id is not None:
             profile_academy = ProfileAcademy.objects.filter(
-                 id=pa_id).first()
+                id=pa_id).first()
 
             if profile_academy is None:
                 raise ValidationException("Member not found", 400)
@@ -934,10 +974,11 @@ def render_invite(request, token, member_id=None):
 
     if request.method == 'GET':
 
-        invite = UserInvite.objects.filter(token=token).first()
+        invite = UserInvite.objects.filter(
+            token=token, status='PENDING').first()
         if invite is None:
             return render(request, 'message.html', {
-                'message': 'Invitation not found with this token'
+                'message': 'Invitation noot found with this token or it was already accepted'
             })
         form = InviteForm({
             **_dict,
@@ -961,10 +1002,11 @@ def render_invite(request, token, member_id=None):
                 'form': form,
             })
 
-        invite = UserInvite.objects.filter(token=str(token)).first()
+        invite = UserInvite.objects.filter(
+            token=str(token), status='PENDING').first()
         if invite is None:
             messages.error(
-                request, 'Invalid or expired invitation: '+str(token))
+                request, 'Invalid or expired invitation'+str(token))
             return render(request, 'form_invite.html', {
                 'form': form
             })
@@ -979,9 +1021,6 @@ def render_invite(request, token, member_id=None):
             user.save()
             user.set_password(password1)
             user.save()
-
-        invite.status = 'ACCEPTED'
-        invite.save()
 
         if invite.academy is not None:
             profile = ProfileAcademy.objects.filter(
@@ -999,8 +1038,14 @@ def render_invite(request, token, member_id=None):
             role = 'student'
             if invite.role is not None and invite.role.slug != 'student':
                 role = invite.role.slug.upper()
-            cu = CohortUser(user=user, cohort=invite.cohort, role=role)
-            cu.save()
+            cu = CohortUser.objects.filter(
+                user=user, cohort=invite.cohort).first()
+            if cu is None:
+                cu = CohortUser(user=user, cohort=invite.cohort, role=role)
+                cu.save()
+
+        invite.status = 'ACCEPTED'
+        invite.save()
 
         callback = str(request.POST.get("callback", None))
         if callback is not None and callback != "" and callback != "['']":

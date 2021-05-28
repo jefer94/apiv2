@@ -18,6 +18,14 @@ def remove_gitpod(modeladmin, request, queryset):
     assets = queryset.update(gitpod=False)
 remove_gitpod.short_description = "Remove GITPOD"
 
+def make_external(modeladmin, request, queryset):
+    result = queryset.update(external=True)
+make_external.short_description = "Make it an EXTERNAL resource (new window)"
+
+def make_internal(modeladmin, request, queryset):
+    result = queryset.update(external=False)
+make_internal.short_description = "Make it an INTERNAL resource"
+
 def sync_github(modeladmin, request, queryset):
     assets = queryset.all()
     for a in assets:

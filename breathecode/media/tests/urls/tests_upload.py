@@ -1,7 +1,12 @@
 """
 Test /answer
 """
-import re, urllib, tempfile, os, hashlib
+import re
+import urllib
+import tempfile
+import os
+import random
+import hashlib
 from unittest.mock import MagicMock, Mock, call, patch, mock_open, sentinel
 from django.urls.base import reverse_lazy
 from rest_framework import status
@@ -13,18 +18,24 @@ from breathecode.tests.mocks import (
     apply_google_cloud_blob_mock,
 )
 from ..mixins import MediaTestCase
+from breathecode.media.views import MIME_ALLOW
+
 
 class FileMock():
     def delete(*args, **kwargs):
         pass
 
+
 file_mock = Mock(side_effect=FileMock)
+
 
 class StorageMock():
     def file(*args, **kwargs):
         return file_mock
 
+
 storage_mock = Mock(side_effect=StorageMock)
+
 
 class MediaTestSuite(MediaTestCase):
     """Test /answer"""
@@ -100,7 +111,7 @@ class MediaTestSuite(MediaTestCase):
         file_mock.upload.call_args_list = []
 
         model = self.generate_models(authenticate=True, profile_academy=True,
-            capability='crud_media', role='potato')
+                                     capability='crud_media', role='potato')
         url = reverse_lazy('media:upload')
         data = {}
         response = self.client.put(url, data)
@@ -126,7 +137,7 @@ class MediaTestSuite(MediaTestCase):
         file_mock.url.return_value = 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
 
         model = self.generate_models(authenticate=True, profile_academy=True,
-            capability='crud_media', role='potato')
+                                     capability='crud_media', role='potato')
         url = reverse_lazy('media:upload')
 
         file = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
@@ -137,7 +148,8 @@ class MediaTestSuite(MediaTestCase):
             hash = hashlib.sha256(data.read()).hexdigest()
 
         with open(file.name, 'rb') as data:
-            response = self.client.put(url, {'name': 'filename.jpg', 'file': data})
+            response = self.client.put(
+                url, {'name': 'filename.png', 'file': data})
             json = response.json()
 
             self.assertHash(hash)
@@ -149,7 +161,7 @@ class MediaTestSuite(MediaTestCase):
                 'hits': 0,
                 'id': 1,
                 'mime': 'image/png',
-                'name': 'filename.jpg',
+                'name': 'filename.png',
                 'slug': 'filename',
                 'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
             }]
@@ -162,7 +174,7 @@ class MediaTestSuite(MediaTestCase):
                 'hits': 0,
                 'id': 1,
                 'mime': 'image/png',
-                'name': 'filename.jpg',
+                'name': 'filename.png',
                 'slug': 'filename',
                 'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
             }])
@@ -186,14 +198,15 @@ class MediaTestSuite(MediaTestCase):
         with open(file.name, 'rb') as data:
             hash = hashlib.sha256(data.read()).hexdigest()
 
-        media_kwargs={'hash': hash}
+        media_kwargs = {'hash': hash}
         model = self.generate_models(authenticate=True, profile_academy=True,
-            capability='crud_media', role='potato', media=True,
-            media_kwargs=media_kwargs)
+                                     capability='crud_media', role='potato', media=True,
+                                     media_kwargs=media_kwargs)
         url = reverse_lazy('media:upload')
 
         with open(file.name, 'rb') as data:
-            response = self.client.put(url, {'name': ['filename.jpg'], 'file': [data]})
+            response = self.client.put(
+                url, {'name': ['filename.jpg'], 'file': [data]})
             json = response.json()
 
             self.assertHash(hash)
@@ -206,7 +219,7 @@ class MediaTestSuite(MediaTestCase):
                 'id': model['media'].id,
                 'mime': 'image/png',
                 'name': 'filename.jpg',
-                'slug': 'filename',
+                'slug': 'filename-jpg',
                 'url': model['media'].url,
             }]
 
@@ -217,7 +230,7 @@ class MediaTestSuite(MediaTestCase):
                 'hash': hash,
                 'mime': 'image/png',
                 'name': 'filename.jpg',
-                'slug': 'filename',
+                'slug': 'filename-jpg',
             }])
 
     @patch('breathecode.services.google_cloud.Storage', storage_mock)
@@ -238,14 +251,15 @@ class MediaTestSuite(MediaTestCase):
         with open(file.name, 'rb') as data:
             hash = hashlib.sha256(data.read()).hexdigest()
 
-        media_kwargs={'slug': 'filename'}
+        media_kwargs = {'slug': 'filename'}
         model = self.generate_models(authenticate=True, profile_academy=True,
-            capability='crud_media', role='potato', media=True,
-            media_kwargs=media_kwargs)
+                                     capability='crud_media', role='potato', media=True,
+                                     media_kwargs=media_kwargs)
         url = reverse_lazy('media:upload')
 
         with open(file.name, 'rb') as data:
-            response = self.client.put(url, {'name': 'filename.jpg', 'file': data})
+            response = self.client.put(
+                url, {'name': 'filename.jpg', 'file': data})
             json = response.json()
             expected = {'detail': 'slug already exists', 'status_code': 400}
 
@@ -268,7 +282,7 @@ class MediaTestSuite(MediaTestCase):
         file_mock.url.return_value = 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
 
         model = self.generate_models(authenticate=True, profile_academy=True,
-            capability='crud_media', role='potato', category=True)
+                                     capability='crud_media', role='potato', category=True)
         url = reverse_lazy('media:upload')
 
         file = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
@@ -293,7 +307,7 @@ class MediaTestSuite(MediaTestCase):
                 'id': 1,
                 'mime': 'image/png',
                 'name': 'filename.jpg',
-                'slug': 'filename',
+                'slug': 'filename-jpg',
                 'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
             }]
 
@@ -306,7 +320,7 @@ class MediaTestSuite(MediaTestCase):
                 'id': 1,
                 'mime': 'image/png',
                 'name': 'filename.jpg',
-                'slug': 'filename',
+                'slug': 'filename-jpg',
                 'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
             }])
 
@@ -323,7 +337,7 @@ class MediaTestSuite(MediaTestCase):
         file_mock.upload.call_args_list = []
 
         model = self.generate_models(authenticate=True, profile_academy=True,
-            capability='crud_media', role='potato', category=True)
+                                     capability='crud_media', role='potato', category=True)
         url = reverse_lazy('media:upload')
 
         file = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
@@ -352,7 +366,7 @@ class MediaTestSuite(MediaTestCase):
                 'id': 1,
                 'mime': 'image/png',
                 'name': 'filename.jpg',
-                'slug': 'filename',
+                'slug': 'filename-jpg',
                 'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
             }]
 
@@ -365,12 +379,13 @@ class MediaTestSuite(MediaTestCase):
                 'id': 1,
                 'mime': 'image/png',
                 'name': 'filename.jpg',
-                'slug': 'filename',
+                'slug': 'filename-jpg',
                 'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
             }])
 
             self.assertEqual(storage_mock.call_args_list, [call()])
-            self.assertEqual(file_mock.upload.call_args_list, [call(file_bytes)])
+            self.assertEqual(file_mock.upload.call_args_list,
+                             [call(file_bytes)])
             self.assertEqual(file_mock.url.call_args_list, [call()])
 
     @patch('breathecode.services.google_cloud.Storage', storage_mock)
@@ -386,7 +401,7 @@ class MediaTestSuite(MediaTestCase):
         file_mock.upload.call_args_list = []
 
         model = self.generate_models(authenticate=True, profile_academy=True,
-            capability='crud_media', role='potato', category=True)
+                                     capability='crud_media', role='potato', category=True)
         url = reverse_lazy('media:upload')
 
         file1 = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
@@ -410,7 +425,8 @@ class MediaTestSuite(MediaTestCase):
         file_mock.url.return_value = 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
         file_mock.url.call_args_list = []
 
-        data = {'name': ['filename1.jpg', 'filename2.jpg'], 'file': [file1, file2]}
+        data = {'name': ['filename1.jpg', 'filename2.jpg'],
+                'file': [file1, file2]}
         response = self.client.put(url, data, format='multipart')
         json = response.json()
 
@@ -422,7 +438,7 @@ class MediaTestSuite(MediaTestCase):
             'id': 1,
             'mime': 'image/png',
             'name': 'filename1.jpg',
-            'slug': 'filename1',
+            'slug': 'filename1-jpg',
             'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
         }, {
             'academy': 1,
@@ -432,7 +448,7 @@ class MediaTestSuite(MediaTestCase):
             'id': 2,
             'mime': 'image/png',
             'name': 'filename2.jpg',
-            'slug': 'filename2',
+            'slug': 'filename2-jpg',
             'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
         }]
 
@@ -445,7 +461,7 @@ class MediaTestSuite(MediaTestCase):
             'id': 1,
             'mime': 'image/png',
             'name': 'filename1.jpg',
-            'slug': 'filename1',
+            'slug': 'filename1-jpg',
             'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
         }, {
             'academy_id': 1,
@@ -454,10 +470,95 @@ class MediaTestSuite(MediaTestCase):
             'id': 2,
             'mime': 'image/png',
             'name': 'filename2.jpg',
-            'slug': 'filename2',
+            'slug': 'filename2-jpg',
             'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
         }])
 
         self.assertEqual(storage_mock.call_args_list, [call(), call()])
-        self.assertEqual(file_mock.upload.call_args_list, [call(file_bytes1), call(file_bytes2)])
+        self.assertEqual(file_mock.upload.call_args_list, [
+                         call(file_bytes1), call(file_bytes2)])
         self.assertEqual(file_mock.url.call_args_list, [call(), call()])
+
+    @patch('breathecode.services.google_cloud.Storage', storage_mock)
+    def test_upload_valid_format(self):
+        """Test / valid format"""
+        self.headers(
+            academy=1,
+        )
+        storage_mock.call_args_list = []
+        file_mock.delete.call_args_list = []
+        file_mock.upload.call_args_list = []
+        file_mock.url.return_value = 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
+        model = self.generate_models(authenticate=True, profile_academy=True,
+                                     capability='crud_media', role='potato')
+        url = reverse_lazy('media:upload')
+        file = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+        file.write(os.urandom(1024))
+        file.close()
+        with open(file.name, 'rb') as data:
+            hash = hashlib.sha256(data.read()).hexdigest()
+        with open(file.name, 'rb') as data:
+            response = self.client.put(
+                url, {'name': 'filename.jpg', 'file': data})
+            json = response.json()
+            self.assertHash(hash)
+            expected = [{
+                'academy': 1,
+                'categories': [],
+                'hash': hash,
+                'hits': 0,
+                'id': 1,
+                'mime': 'image/jpeg',
+                'name': 'filename.jpg',
+                'slug': 'filename',
+                'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
+            }]
+            self.assertEqual(json, expected)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(self.all_media_dict(), [{
+                'academy_id': 1,
+                'hash': hash,
+                'hits': 0,
+                'id': 1,
+                'mime': 'image/jpeg',
+                'name': 'filename.jpg',
+                'slug': 'filename',
+                'url': 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
+            }])
+
+    @patch('breathecode.services.google_cloud.Storage', storage_mock)
+    def test_upload_invalid_format(self):
+        """Test /invalid format"""
+        self.headers(
+            academy=1,
+        )
+
+        storage_mock.call_args_list = []
+        file_mock.delete.call_args_list = []
+        file_mock.upload.call_args_list = []
+        file_mock.url.return_value = 'https://storage.cloud.google.com/media-breathecode/hardcoded_url'
+
+        model = self.generate_models(authenticate=True, profile_academy=True,
+                                     capability='crud_media', role='potato')
+        url = reverse_lazy('media:upload')
+
+        file = tempfile.NamedTemporaryFile(suffix='.lbs', delete=False)
+        file.write(os.urandom(1024))
+        file.close()
+
+        with open(file.name, 'rb') as data:
+            hash = hashlib.sha256(data.read()).hexdigest()
+
+        with open(file.name, 'rb') as data:
+            response = self.client.put(
+                url, {'name': 'filename.lbs', 'file': data})
+
+            json = response.json()
+
+            self.assertHash(hash)
+
+            expected = {'detail': f'You can upload only files on the following formats: {",".join(MIME_ALLOW)}',
+                        'status_code': 400}
+
+            self.assertEqual(json, expected)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

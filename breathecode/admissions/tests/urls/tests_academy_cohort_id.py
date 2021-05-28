@@ -87,8 +87,10 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
         data = {}
         response = self.client.put(url, data)
         json = response.json()
-
-        expected = {'non_field_errors': ['Cohort not have one ending date or ever_ends=true']}
+        expected = {
+            'detail': 'cohort-without-ending-date-and-never-ends',
+            'status_code': 400,
+        }
 
         self.assertEqual(json, expected)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -112,7 +114,10 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
         response = self.client.put(url, data)
         json = response.json()
 
-        expected = {'non_field_errors': ['One cohort that never ends cannot have one ending date']}
+        expected = {
+            'detail': 'cohort-with-ending-date-and-never-ends',
+            'status_code': 400,
+        }
 
         self.assertEqual(json, expected)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -140,6 +145,7 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
             'slug': model['cohort'].slug,
             'name': model['cohort'].name,
             'never_ends': True,
+            'private': False,
             'kickoff_date': self.datetime_to_iso(model['cohort'].kickoff_date),
             'ending_date': model['cohort'].ending_date,
             'current_day': model['cohort'].current_day,
@@ -174,8 +180,8 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
         response = self.client.put(url, data)
         json = response.json()
         expected = {
-            'non_field_errors': ['Syllabus field marformed(`${certificate.slug}'
-                '.v{syllabus.version}`)']
+            'detail': 'syllabus-field-marformed',
+            'status_code': 400,
         }
 
         self.assertEqual(json, expected)
@@ -203,7 +209,8 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
         response = self.client.put(url, data)
         json = response.json()
         expected = {
-            'non_field_errors': ["Syllabus doesn't exist"]
+            'detail': 'syllabus-doesnt-exist',
+            'status_code': 400,
         }
 
         self.assertEqual(json, expected)
@@ -231,7 +238,8 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
         response = self.client.put(url, data)
         json = response.json()
         expected = {
-            'non_field_errors': ["Syllabus doesn't exist"]
+            'detail': 'syllabus-doesnt-exist',
+            'status_code': 400,
         }
 
         self.assertEqual(json, expected)
@@ -259,7 +267,8 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
         response = self.client.put(url, data)
         json = response.json()
         expected = {
-            'non_field_errors': ["Syllabus doesn't exist"]
+            'detail': 'syllabus-doesnt-exist',
+            'status_code': 400,
         }
 
         self.assertEqual(json, expected)
@@ -292,6 +301,7 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
             'slug': data['slug'],
             'name': data['name'],
             'never_ends': False,
+            'private': False,
             'kickoff_date': self.datetime_to_iso(model['cohort'].kickoff_date),
             'ending_date': self.datetime_to_iso(model['cohort'].ending_date),
             'current_day': data['current_day'],
@@ -335,10 +345,13 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
             'id': model['cohort'].id,
             'slug': model['cohort'].slug,
             'name': model['cohort'].name,
+            'never_ends': model['cohort'].never_ends,
+            'private': model['cohort'].private,
             'kickoff_date': self.datetime_to_iso(model['cohort'].kickoff_date),
             'ending_date': model['cohort'].ending_date,
             'stage': model['cohort'].stage,
             'language': model['cohort'].language,
+            'current_day': model['cohort'].current_day,
             'syllabus': {
                 'certificate': {
                     'id': model['cohort'].syllabus.certificate.id,
@@ -398,10 +411,13 @@ class AcademyCohortIdTestSuite(AdmissionsTestCase):
             'id': model['cohort'].id,
             'slug': model['cohort'].slug,
             'name': model['cohort'].name,
+            'never_ends': model['cohort'].never_ends,
+            'private': model['cohort'].private,
             'kickoff_date': self.datetime_to_iso(model['cohort'].kickoff_date),
             'ending_date': model['cohort'].ending_date,
             'language': model['cohort'].language,
             'stage': model['cohort'].stage,
+            'current_day': model['cohort'].current_day,
             'syllabus': {
                 'certificate': {
                     'id': model['cohort'].syllabus.certificate.id,

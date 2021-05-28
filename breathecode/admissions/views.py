@@ -78,7 +78,12 @@ def get_cohorts(request, id=None):
     if location is not None:
         items = items.filter(academy__slug__in=location.split(","))
 
-    items = items.order_by('kickoff_date')
+    sort = request.GET.get('sort', None)
+    if sort is None or sort == "":
+        sort = "-kickoff_date"
+
+    items = items.order_by(sort)
+
     serializer = GetCohortSerializer(items, many=True)
 
     return Response(serializer.data)
@@ -263,13 +268,12 @@ class CohortUserView(APIView, GenerateLookupsMixin):
         return Response(None, status=status.HTTP_204_NO_CONTENT)
 
 
-class AcademyCohortUserView(APIView, GenerateLookupsMixin):
+class AcademyCohortUserView(APIView, HeaderLimitOffsetPagination, GenerateLookupsMixin):
     """
     List all snippets, or create a new snippet.
     """
     @ capable_of('read_cohort')
     def get(self, request, format=None, cohort_id=None, user_id=None, academy_id=None):
-
         if user_id is not None:
             item = CohortUser.objects.filter(
                 cohort__academy__id=academy_id, user__id=user_id, cohort__id=cohort_id).first()
@@ -302,11 +306,17 @@ class AcademyCohortUserView(APIView, GenerateLookupsMixin):
             users = request.GET.get('users', None)
             if users is not None:
                 items = items.filter(user__id__in=users.split(","))
+
         except Exception as e:
             raise ValidationException(str(e), 400)
 
-        serializer = GETCohortUserSerializer(items, many=True)
-        return Response(serializer.data)
+        page = self.paginate_queryset(items, request)
+        serializer = GETCohortUserSerializer(page, many=True)
+
+        if self.is_paginate(request):
+            return self.get_paginated_response(serializer.data)
+        else:
+            return Response(serializer.data, status=200)
 
     @ capable_of('crud_cohort')
     def post(self, request, cohort_id=None, academy_id=None, user_id=None):
@@ -453,6 +463,12 @@ class AcademyCohortView(APIView, HeaderLimitOffsetPagination, GenerateLookupsMix
         if like is not None:
             items = items.filter(Q(name__icontains=like) |
                                  Q(slug__icontains=like))
+
+        sort = request.GET.get('sort', None)
+        if sort is None or sort == "":
+            sort = "-kickoff_date"
+
+        items = items.order_by(sort)
 
         page = self.paginate_queryset(items, request)
         serializer = GetCohortSerializer(page, many=True)
