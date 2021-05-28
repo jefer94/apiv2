@@ -2,8 +2,6 @@
 
 Is a method to check whether the actual software product matches expected requirements and to ensure that software product is Defect free.
 
-https://www.test-institute.org/test_images/what_has_to_be_really_tested.png
-
 ## Code references
 
 [Mixin references](docs/testing/TESTING.md)
