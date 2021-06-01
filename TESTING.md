@@ -35,11 +35,15 @@ The three main goals of Software Testing are:
 
 ### Test-driven development
 
-![Test-driven development](https://www.xeridia.com/sites/default/files/contenidos/blog/test-driven-development.png "Test-driven development")
+<div align="center">
+  <img align="center" src="https://www.xeridia.com/sites/default/files/contenidos/blog/test-driven-development.png"/>
+</div>
 
 ### Behavior-driven development
 
-![Behavior-driven development](https://brainhub.eu/blog/wp-content/uploads/2019/03/behavior-driven-development-cycle-what-is-bdd.png "Behavior-driven development")
+<div align="center">
+  <img align="center" src="https://www.mobileappdaily.com/public/uploads/mad_74308f941c.png"/>
+</div>
 
 ## References
 
