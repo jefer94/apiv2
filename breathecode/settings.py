@@ -37,6 +37,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'breathecode.admin_styles',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -340,3 +341,5 @@ with open(sql_keywords_path, 'r') as f:
     # breathecode/sql_keywords.json
 
     EXPLORER_SQL_BLACKLIST = tuple(sql_keywords['blacklist'])
+
+ASGI_APPLICATION = 'breathecode.asgi.application'

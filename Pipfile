@@ -53,6 +53,7 @@ uritemplate = "*"
 psycopg2-binary = "*"
 django-sql-explorer = {extras = ["xls"], version = "*"}
 google-cloud-ndb = "*"
+channels = "*"
 
 [requires]
 python_version = "3.9"
