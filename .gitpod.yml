@@ -12,11 +12,9 @@ tasks:
     command: pipenv run celery
   - init: python -m scripts.install
     command: |
+      # postgres
       psql -U gitpod -c 'CREATE DATABASE breathecode;'
       psql -U gitpod -c 'CREATE EXTENSION unaccent;' -d breathecode
-      pipenv run migrate
-      pipenv run python manage.py loaddata breathecode/*/fixtures/dev_*.json
-      pipenv run python manage.py create_roles
 
       # this prevent run the server before that redis
       python -m scripts.wait_for_redis
@@ -24,6 +22,10 @@ tasks:
       # this prevent run the server before that posgres
       python -m scripts.wait_for_postgres
 
+      # django
+      pipenv run migrate
+      pipenv run python manage.py loaddata breathecode/*/fixtures/dev_*.json
+      pipenv run python manage.py create_roles
       pipenv run start
   - command: |
     # testing console
