@@ -17,6 +17,8 @@ mkdocstrings = "*"
 beautifulsoup4 = "*"
 lxml = "*"
 pytest-xdist = "*"
+pytest-django = "*"
+pytest-asyncio = "*"
 
 [packages]
 django = "*"
