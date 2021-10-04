@@ -15,3 +15,4 @@ from .datetime_mixin import DatetimeMixin
 from .exception_mixin import ExceptionMixin
 from .ical_mixin import ICallMixin
 from .sha256_mixin import Sha256Mixin
+from .run_as_sync_mixin import RunAsSyncMixin

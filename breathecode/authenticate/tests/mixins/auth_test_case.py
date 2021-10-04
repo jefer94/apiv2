@@ -8,12 +8,12 @@ from django.urls.base import reverse_lazy
 from rest_framework.test import APITestCase, APIClient
 from mixer.backend.django import mixer
 from django.core.cache import cache
-from breathecode.tests.mixins import ModelsMixin
+from breathecode.tests.mixins import ModelsMixin, RunAsSyncMixin
 from breathecode.tests.mocks import (GOOGLE_CLOUD_PATH, apply_google_cloud_client_mock,
                                      apply_google_cloud_bucket_mock, apply_google_cloud_blob_mock)
 
 
-class AuthTestCase(APITestCase, ModelsMixin):
+class AuthTestCase(APITestCase, ModelsMixin, RunAsSyncMixin):
     """APITestCase with auth methods"""
     # token = None
     user = None
