@@ -399,7 +399,6 @@ class LoginView(ObtainAuthToken):
     schema = AutoSchema()
 
     def post(self, request, *args, **kwargs):
-
         serializer = AuthSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
@@ -722,45 +721,45 @@ def save_slack_token(request):
     error = request.query_params.get('error', False)
     error_description = request.query_params.get('error_description', '')
     if error:
-        raise APIException('Slack: ' + error_description)
+        raise ValidationException('Slack: ' + error_description)
 
     original_payload = request.query_params.get('payload', None)
     payload = request.query_params.get('payload', None)
     if payload is None:
-        raise ValidationError('No payload specified')
+        raise ValidationException('No payload specified')
     else:
         try:
             payload = base64.b64decode(payload).decode('utf-8')
             payload = parse_qs(payload)
         except:
-            raise ValidationError('Cannot decode payload in base64')
+            raise ValidationException('Cannot decode payload in base64')
 
     if 'url' not in payload:
         logger.exception(payload)
-        raise ValidationError('No url specified from the slack payload')
+        raise ValidationException('No url specified from the slack payload')
 
     if 'user' not in payload:
         logger.exception(payload)
-        raise ValidationError('No user id specified from the slack payload')
+        raise ValidationException('No user id specified from the slack payload')
 
     if 'a' not in payload:
         logger.exception(payload)
-        raise ValidationError('No academy id specified from the slack payload')
+        raise ValidationException('No academy id specified from the slack payload')
 
     try:
         academy = Academy.objects.get(id=payload['a'][0])
     except Exception as e:
-        raise ValidationError('Not exist academy with that id') from e
+        raise ValidationException('Not exist academy with that id') from e
 
     user = None
     try:
         user = User.objects.get(id=payload['user'][0])
     except Exception as e:
-        raise ValidationError('Not exist user with that id') from e
+        raise ValidationException('Not exist user with that id') from e
 
     code = request.query_params.get('code', None)
     if code is None:
-        raise ValidationError('No slack code specified')
+        raise ValidationException('No slack code specified')
 
     params = {
         'client_id': os.getenv('SLACK_CLIENT_ID', ''),
@@ -776,7 +775,7 @@ def save_slack_token(request):
         slack_data = resp.json()
         if 'access_token' not in slack_data:
             print('Slack response body', slack_data)
-            raise APIException('Slack error status: ' + slack_data['error'])
+            raise ValidationException('Slack error status: ' + slack_data['error'])
 
         slack_data = resp.json()
         logger.debug(slack_data)

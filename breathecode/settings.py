@@ -323,25 +323,7 @@ django_heroku.settings(_locals)
 
 # Change 'default' database configuration with $DATABASE_URL.
 # https://github.com/jacobian/dj-database-url#url-schema
-if not is_test_env:
-    DATABASES = {'default': dj_database_url.config(default=DATABASE_URL)}
-
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-            'OPTIONS': {
-                'timeout': 2000,
-            },
-            'TEST': {
-                # 'NAME': 'testdb.sqlite3',
-                'OPTIONS': {
-                    'timeout': 2000,
-                },
-            },
-        },
-    }
+DATABASES = {'default': dj_database_url.config(default=DATABASE_URL)}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 

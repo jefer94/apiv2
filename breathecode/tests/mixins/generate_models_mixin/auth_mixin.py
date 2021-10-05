@@ -28,11 +28,14 @@ class AuthMixin(DateFormatterMixin, HeadersMixin, ModelsMixin):
         if not 'user' in models and (user or authenticate or profile_academy or manual_authenticate
                                      or cohort_user or task or slack_team):
             kargs = {}
+            password = user_kwargs.pop('password') if 'password' in user_kwargs else None
 
             kargs = {**kargs, **user_kwargs}
             models['user'] = mixer.blend('auth.User', **kargs)
-            models['user'].set_password(self.password)
-            models['user'].save()
+
+            if password:
+                models['user'].set_password(password)
+                models['user'].save()
 
         if authenticate:
             self.client.force_authenticate(user=models['user'])

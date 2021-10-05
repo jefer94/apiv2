@@ -50,9 +50,13 @@ class AuthenticateTestSuite(AuthTestCase):
 
     def test_login(self):
         """Test /login"""
-        response = self.create_user()
-        token_pattern = re.compile('^[0-9a-zA-Z]{,40}$')
+        user_kwargs = {'password': 'self.password'}
+        model = self.generate_models(user=True, user_kwargs=user_kwargs)
+        url = reverse_lazy('authenticate:login')
+        data = {'email': model.user.email, 'password': 'self.password'}
+        response = self.client.post(url, data)
 
+        token_pattern = re.compile('^[0-9a-zA-Z]{,40}$')
         token = str(response.data['token'])
         user_id = int(response.data['user_id'])
         email = str(response.data['email'])
@@ -61,12 +65,16 @@ class AuthenticateTestSuite(AuthTestCase):
         self.assertEqual(len(token), 40)
         self.assertEqual(bool(token_pattern.match(token)), True)
         self.assertEqual(user_id, 1)
-        self.assertEqual(email, self.email)
+        self.assertEqual(email, model.user.email)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_login_uppercase_email(self):
         """Test /login"""
-        response = self.create_user(email=self.email.upper())
+        user_kwargs = {'email': 'self@email.ok', 'password': 'self.password'}
+        model = self.generate_models(user=True, user_kwargs=user_kwargs)
+        url = reverse_lazy('authenticate:login')
+        data = {'email': model.user.email.upper(), 'password': 'self.password'}
+        response = self.client.post(url, data)
         token_pattern = re.compile('^[0-9a-zA-Z]{,40}$')
 
         token = str(response.data['token'])
@@ -77,5 +85,5 @@ class AuthenticateTestSuite(AuthTestCase):
         self.assertEqual(len(token), 40)
         self.assertEqual(bool(token_pattern.match(token)), True)
         self.assertEqual(user_id, 1)
-        self.assertEqual(email, self.email)
+        self.assertEqual(email, model.user.email)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

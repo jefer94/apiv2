@@ -11,9 +11,9 @@ class AuthenticateTestSuite(AuthTestCase):
     def test_user_me_without_auth(self):
         """Test /user/me without auth"""
         url = reverse_lazy('authenticate:user_me')
-        data = {'email': self.email, 'password': self.password}
+        data = {'email': 'self@email.ok', 'password': 'self.password'}
         # return client.post(url, data)
-        # self.client.force_authenticate(user=self.user)
+        # self.client.force_authenticate(user=model.user)
         response = self.client.post(url, data)
         detail = str(response.data['detail'])
         status_code = int(response.data['status_code'])
@@ -25,21 +25,17 @@ class AuthenticateTestSuite(AuthTestCase):
 
     def test_user_me(self):
         """Test /user/me"""
+        model = self.generate_models(authenticate=True)
         url = reverse_lazy('authenticate:user_me')
-        self.client.force_authenticate(user=self.user)
         response = self.client.get(url)
         json = response.json()
 
         self.assertEqual(
             json, {
-                'id': self.user.id,
-                'email': self.user.email,
-                'first_name': self.user.first_name,
-                'last_name': self.user.last_name,
-                'github': {
-                    'avatar_url': None,
-                    'name': None,
-                    'username': None,
-                },
+                'id': model.user.id,
+                'email': model.user.email,
+                'first_name': model.user.first_name,
+                'last_name': model.user.last_name,
+                'github': None,
                 'roles': [],
             })

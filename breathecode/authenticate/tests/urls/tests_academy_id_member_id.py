@@ -14,9 +14,9 @@ class AuthenticateTestSuite(AuthTestCase):
         url = reverse_lazy('authenticate:academy_id_member_id',
                            kwargs={
                                'academy_id': 1,
-                               'user_id_or_email': '2'
+                               'user_id_or_email': '1'
                            })
-        data = {'email': self.email, 'password': self.password}
+        data = {'email': 'self@email.ok', 'password': 'self.password'}
         response = self.client.post(url, data)
         json = response.json()
 
@@ -33,14 +33,14 @@ class AuthenticateTestSuite(AuthTestCase):
         url = reverse_lazy('authenticate:academy_id_member_id',
                            kwargs={
                                'academy_id': 1,
-                               'user_id_or_email': '2'
+                               'user_id_or_email': '1'
                            })
         response = self.client.get(url)
         json = response.json()
 
         self.assertEqual(
             json, {
-                'detail': "You (user: 2) don't have this capability: read_member "
+                'detail': "You (user: 1) don't have this capability: read_member "
                 'for academy 1',
                 'status_code': 403
             })
@@ -53,14 +53,14 @@ class AuthenticateTestSuite(AuthTestCase):
         url = reverse_lazy('authenticate:academy_id_member_id',
                            kwargs={
                                'academy_id': 1,
-                               'user_id_or_email': '2'
+                               'user_id_or_email': '1'
                            })
         response = self.client.get(url)
         json = response.json()
 
         self.assertEqual(
             json, {
-                'detail': "You (user: 2) don't have this capability: read_member "
+                'detail': "You (user: 1) don't have this capability: read_member "
                 'for academy 1',
                 'status_code': 403
             })
@@ -76,7 +76,7 @@ class AuthenticateTestSuite(AuthTestCase):
         url = reverse_lazy('authenticate:academy_id_member_id',
                            kwargs={
                                'academy_id': 1,
-                               'user_id_or_email': '2'
+                               'user_id_or_email': '1'
                            })
         response = self.client.get(url)
         json = response.json()
@@ -122,7 +122,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     """
@@ -141,7 +141,7 @@ class AuthenticateTestSuite(AuthTestCase):
         url = reverse_lazy('authenticate:academy_id_member_id',
                            kwargs={
                                'academy_id': 1,
-                               'user_id_or_email': '2'
+                               'user_id_or_email': '1'
                            })
         response = self.client.get(url)
         json = response.json()
@@ -193,7 +193,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_id_with_github(self):
@@ -207,7 +207,7 @@ class AuthenticateTestSuite(AuthTestCase):
         url = reverse_lazy('authenticate:academy_id_member_id',
                            kwargs={
                                'academy_id': 1,
-                               'user_id_or_email': '2'
+                               'user_id_or_email': '1'
                            })
         response = self.client.get(url)
         json = response.json()
@@ -238,7 +238,11 @@ class AuthenticateTestSuite(AuthTestCase):
                     'first_name': model['user'].first_name,
                     'id': model['user'].id,
                     'last_name': model['user'].last_name,
-                    'github': None,
+                    'github': {
+                        'avatar_url': None,
+                        'name': None,
+                        'username': None,
+                    },
                     'profile': None,
                 },
             })
@@ -253,5 +257,5 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])

@@ -11,8 +11,8 @@ class AuthenticateTestSuite(AuthTestCase):
     """Authentication test suite"""
     def test_academy_student_id_without_auth(self):
         """Test /academy/:id/member/:id without auth"""
-        url = reverse_lazy('authenticate:academy_student_id', kwargs={'user_id_or_email': '2'})
-        data = {'email': self.email, 'password': self.password}
+        url = reverse_lazy('authenticate:academy_student_id', kwargs={'user_id_or_email': '1'})
+        data = {'email': 'self@email.ok', 'password': 'self.password'}
         response = self.client.post(url, data)
         json = response.json()
 
@@ -28,13 +28,13 @@ class AuthenticateTestSuite(AuthTestCase):
         self.headers(academy=1)
 
         self.generate_models(authenticate=True)
-        url = reverse_lazy('authenticate:academy_student_id', kwargs={'user_id_or_email': '2'})
+        url = reverse_lazy('authenticate:academy_student_id', kwargs={'user_id_or_email': '1'})
         response = self.client.get(url)
         json = response.json()
 
         self.assertEqual(
             json, {
-                'detail': "You (user: 2) don't have this capability: read_student "
+                'detail': "You (user: 1) don't have this capability: read_student "
                 'for academy 1',
                 'status_code': 403
             })
@@ -48,11 +48,11 @@ class AuthenticateTestSuite(AuthTestCase):
                                      role=role,
                                      capability='read_student',
                                      profile_academy=True)
-        url = reverse_lazy('authenticate:academy_student_id', kwargs={'user_id_or_email': '2'})
+        url = reverse_lazy('authenticate:academy_student_id', kwargs={'user_id_or_email': '1'})
         response = self.client.get(url)
         json = response.json()
 
-        profile_academy = self.get_profile_academy(1)
+        profile_academy = model.profile_academy
 
         self.assertEqual(
             json, {
@@ -93,7 +93,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     """
@@ -110,7 +110,7 @@ class AuthenticateTestSuite(AuthTestCase):
                                      profile_academy=True,
                                      credentials_github=True,
                                      profile=True)
-        url = reverse_lazy('authenticate:academy_student_id', kwargs={'user_id_or_email': '2'})
+        url = reverse_lazy('authenticate:academy_student_id', kwargs={'user_id_or_email': '1'})
         response = self.client.get(url)
         json = response.json()
 
@@ -161,7 +161,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_student_id_with_github(self):
@@ -173,7 +173,7 @@ class AuthenticateTestSuite(AuthTestCase):
                                      capability='read_student',
                                      profile_academy=True,
                                      credentials_github=True)
-        url = reverse_lazy('authenticate:academy_student_id', kwargs={'user_id_or_email': '2'})
+        url = reverse_lazy('authenticate:academy_student_id', kwargs={'user_id_or_email': '1'})
         response = self.client.get(url)
         json = response.json()
 
@@ -203,7 +203,11 @@ class AuthenticateTestSuite(AuthTestCase):
                     'first_name': model['user'].first_name,
                     'id': model['user'].id,
                     'last_name': model['user'].last_name,
-                    'github': None,
+                    'github': {
+                        'avatar_url': None,
+                        'name': None,
+                        'username': None,
+                    },
                     'profile': None,
                 },
             })
@@ -218,5 +222,5 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])

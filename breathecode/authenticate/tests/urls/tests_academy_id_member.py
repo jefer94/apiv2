@@ -12,7 +12,7 @@ class AuthenticateTestSuite(AuthTestCase):
     def test_academy_id_member_without_auth(self):
         """Test /academy/:id/member without auth"""
         url = reverse_lazy('authenticate:academy_id_member', kwargs={'academy_id': 1})
-        data = {'email': self.email, 'password': self.password}
+        data = {}
         response = self.client.post(url, data)
         json = response.json()
 
@@ -32,23 +32,7 @@ class AuthenticateTestSuite(AuthTestCase):
 
         self.assertEqual(
             json, {
-                'detail': "You (user: 2) don't have this capability: read_member "
-                'for academy 1',
-                'status_code': 403
-            })
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_academy_id_member_without_academy(self):
-        """Test /academy/:id/member"""
-        role = 'konan'
-        self.generate_models(authenticate=True, role=role, capability='read_member')
-        url = reverse_lazy('authenticate:academy_id_member', kwargs={'academy_id': 1})
-        response = self.client.get(url)
-        json = response.json()
-
-        self.assertEqual(
-            json, {
-                'detail': "You (user: 2) don't have this capability: read_member "
+                'detail': "You (user: 1) don't have this capability: read_member "
                 'for academy 1',
                 'status_code': 403
             })
@@ -104,7 +88,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     """
@@ -164,7 +148,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_with_github(self):
@@ -221,7 +205,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_with_status_invited(self):
@@ -276,17 +260,18 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_with_status_invited_without_data(self):
         """Test /academy/:id/member"""
         role = 'konan'
+        profile_academy_kwargs = {'status': 'ACTIVE'}
         model = self.generate_models(authenticate=True,
                                      role=role,
                                      capability='read_member',
                                      profile_academy=True,
-                                     profile_academy_status='ACTIVE')
+                                     profile_academy_kwargs=profile_academy_kwargs)
         url = reverse_lazy('authenticate:academy_id_member', kwargs={'academy_id': 1})
         url = f'{url}?status=INVITED'
         response = self.client.get(url)
@@ -304,17 +289,18 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'ACTIVE',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_with_status_active(self):
         """Test /academy/:id/member"""
         role = 'konan'
+        profile_academy_kwargs = {'status': 'ACTIVE'}
         model = self.generate_models(authenticate=True,
                                      role=role,
                                      capability='read_member',
                                      profile_academy=True,
-                                     profile_academy_status='ACTIVE')
+                                     profile_academy_kwargs=profile_academy_kwargs)
         url = reverse_lazy('authenticate:academy_id_member', kwargs={'academy_id': 1})
         url = f'{url}?status=ACTIVE'
         response = self.client.get(url)
@@ -359,7 +345,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'ACTIVE',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_with_status_active_without_data(self):
@@ -387,7 +373,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_with_zero_roles(self):
@@ -414,7 +400,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_with_zero_roles(self):
@@ -438,7 +424,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_with_one_roles(self):
@@ -492,7 +478,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_with_two_roles(self):
@@ -563,7 +549,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': roles[index],
             'status': 'INVITED',
-            'user_id': 2 + index,
+            'user_id': 1 + index,
         } for index in range(0, 2)])
 
     def test_academy_id_member_post_no_data(self):
@@ -591,7 +577,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_post_no_user(self):
@@ -620,7 +606,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_post_no_invite(self):
@@ -649,7 +635,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_post_user_with_not_student_role(self):
@@ -679,7 +665,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'INVITED',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_post_user_with_student_role(self):
@@ -716,7 +702,7 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': role,
             'status': 'ACTIVE',
-            'user_id': 2,
+            'user_id': 1,
         }])
 
     def test_academy_id_member_post_teacher_with_student_role(self):
@@ -754,5 +740,5 @@ class AuthenticateTestSuite(AuthTestCase):
             'phone': '',
             'role_id': 'teacher',
             'status': 'ACTIVE',
-            'user_id': 2,
+            'user_id': 1,
         }])
