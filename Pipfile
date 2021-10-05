@@ -56,6 +56,7 @@ psycopg2-binary = "*"
 django-sql-explorer = {extras = ["xls"], version = "*"}
 google-cloud-ndb = "*"
 channels = "*"
+channels-redis = {extras = ["cryptography"], version = "*"}
 
 [requires]
 python_version = "3.9"

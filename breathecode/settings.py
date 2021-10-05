@@ -342,12 +342,12 @@ with open(sql_keywords_path, 'r') as f:
     EXPLORER_SQL_BLACKLIST = tuple(sql_keywords['blacklist'])
 
 ASGI_APPLICATION = 'breathecode.asgi.application'
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [REDIS_URL],
-#             # "symmetric_encryption_keys": [SECRET_KEY],
-#         },
-#     },
-# }
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL],
+            # "symmetric_encryption_keys": [SECRET_KEY],
+        },
+    },
+}

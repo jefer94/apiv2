@@ -5,12 +5,26 @@ from breathecode.authenticate.models import ProfileAcademy
 
 
 class UserOnlineConsumer(JsonWebsocketConsumer):
+    groups = ['broadcast']
+
     def get_user(self):
         return ProfileAcademy.objects.filter().first()
 
     def connect(self):
         result = {'status': 'ONLINE'}
         self.accept()
+
+        # print(dir(self))
+        # print('=========================')
+        # print(vars(self))
+        # print('=========================')
+        # print(self.scope)
+        # print('=========================')
+        # print(self.scope['user'])
+        # print('=========================')
+        # print(self.groups)
+        # print('=========================')
+        # print(dir(self.channel_layer))
 
         pa = self.get_user()
         if pa:
@@ -24,6 +38,8 @@ class UserOnlineConsumer(JsonWebsocketConsumer):
                 result['avatar_url'] = pa.user.profile.avatar_url
 
         self.send_json(result)
+        # print(self.channel_layer.send.__code__.co_varnames)
+        self.channel_layer.send(result)
 
     def disconnect(self, close_code):
         result = {'status': 'OFFLINE'}

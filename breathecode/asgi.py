@@ -11,6 +11,6 @@ django.setup()
 
 application = ProtocolTypeRouter({
     'http': get_asgi_application(),
-    # "websocket": AuthMiddlewareStack(urlpatterns),
-    'websocket': urlpatterns,
+    'websocket': AuthMiddlewareStack(urlpatterns),
+    # 'websocket': urlpatterns,
 })
