@@ -5,6 +5,8 @@ logger = logging.getLogger(__name__)
 SOURCE = 'eventbrite'
 CAMPAIGN = 'eventbrite order placed'
 
+__init__ = ['order_placed']
+
 
 def order_placed(self, webhook, payload: dict):
     # prevent circular dependency import between thousand modules previuosly loaded and cached

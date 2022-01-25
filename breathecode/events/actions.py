@@ -261,6 +261,28 @@ def update_or_create_event(data, org):
     return event
 
 
+def publish_event_to_eventbrite(event: Event, org: Organization) -> None:
+    if not event.eventbrite_id:
+        logger.error(f'The event `{event.slug or event.id}` is not available in Eventbrite too, maybe you '
+                     'should sync with Eventbrite before try to publish a event')
+        return
+
+    client = Eventbrite(org.eventbrite_key)
+    now = get_current_iso_string()
+
+    try:
+        client.publish_organization_event(event.eventbrite_id)
+
+        event.eventbrite_sync_description = now
+        event.eventbrite_sync_status = 'SYNCHED'
+
+    except Exception as e:
+        event.eventbrite_sync_description = f'{now} => {e}'
+        event.eventbrite_sync_status = 'ERROR'
+
+    event.save()
+
+
 def fix_datetime_weekday(current, timeslot, prev=False, next=False):
     if not prev and not next:
         raise Exception('You should provide a prev or next argument')

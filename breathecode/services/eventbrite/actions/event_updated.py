@@ -2,6 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+__init__ = ['event_updated']
+
 
 def event_updated(self, webhook, payload: dict):
     # lazyload to fix circular import

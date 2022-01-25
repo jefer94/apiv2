@@ -12,3 +12,7 @@ def post_save_event(sender, instance: Event, **kwargs):
     logger.debug('Procesing event save')
     if instance.sync_with_eventbrite and instance.eventbrite_sync_status == 'PENDING':
         async_export_event_to_eventbrite.delay(instance.id)
+
+    # if instance.sync_with_eventbrite and instance.eventbrite_sync_status == 'PENDING':
+    #     # async_export_event_to_eventbrite.delay(instance.id)
+    #     pass

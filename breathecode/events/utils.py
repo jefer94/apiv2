@@ -73,3 +73,9 @@ class Eventbrite(object):
     def update_organization_event(self, event_id, data):
         data = self.request('PUT', f'/events/{event_id}/', data=data)
         return data
+
+    # https://www.eventbrite.com/platform/api#/reference/event/list/publish-an-event
+    def publish_organization_event(self, event_id):
+        data = self.request('POST', f'/events/{event_id}/publish/', data=None)
+
+        return data
