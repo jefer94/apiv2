@@ -347,6 +347,8 @@ class AssetThumbnailView(APIView):
     get:
         Get asset thumbnail.
     """
+    permission_classes = [AllowAny]
+
     def get(self, request, asset_slug):
         width = int(request.GET.get('width', '0'))
         height = int(request.GET.get('height', '0'))
