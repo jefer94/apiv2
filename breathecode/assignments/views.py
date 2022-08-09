@@ -1,4 +1,6 @@
+from typing_extensions import Self
 from django.http import HttpResponseRedirect
+from typing import Callable
 from breathecode.authenticate.models import ProfileAcademy
 import logging
 from django.shortcuts import render
@@ -23,83 +25,140 @@ from .serializers import (TaskGETSerializer, PUTTaskSerializer, PostTaskSerializ
                           FinalProjectGETSerializer, PostFinalProjectSerializer, PUTFinalProjectSerializer)
 from .actions import sync_cohort_tasks
 import breathecode.assignments.tasks as tasks
+from django.db.models import QuerySet
 
 logger = logging.getLogger(__name__)
 
 
-class TaskTeacherView(APIView):
-    def get(self, request, task_id=None, user_id=None):
-        items = Task.objects.all()
-        logger.debug(f'Found {items.count()} tasks')
+class GenericTaskView(APIView):
+    """
+    This generic task view contains contents will be shared between the children
+    """
+    extensions = APIViewExtensions(cache=TaskCache, sort='-created_at', paginate=True)
+    role = None
 
-        profile_ids = ProfileAcademy.objects.filter(user=request.user.id).values_list('academy__id',
-                                                                                      flat=True)
-        if not profile_ids:
-            raise ValidationException(
-                'The quest user must belong to at least one academy to be able to request student tasks',
-                code=400,
-                slug='without-profile-academy')
+    def _get_roles(self, academy_id):
+        return list(
+            ProfileAcademy.objects.filter(academy__id=academy_id, user=self.request.user,
+                                          status='ACTIVE').values_list('role__slug', flat=True))
 
-        items = items.filter(Q(cohort__academy__id__in=profile_ids) | Q(cohort__isnull=True))
+    def _has_permission(self, user_roles, required_roles):
+        for role in user_roles:
+            if role in required_roles:
+                return
 
-        academy = request.GET.get('academy', None)
-        if academy is not None:
-            items = items.filter(Q(cohort__academy__slug__in=academy.split(',')) | Q(cohort__isnull=True))
+        raise ValidationException('You not have the permissions to use this endpoint',
+                                  slug='without-profile-academy')
 
-        user = request.GET.get('user', None)
-        if user is not None:
+    def _has_less_one_role(self, user_roles, required_roles) -> bool:
+        for role in user_roles:
+            if role in required_roles:
+                return True
+
+        return False
+
+    def _apply_filters(self, items: QuerySet[Task], roles: list[str] = []) -> QuerySet[Task]:
+        is_teacher = self._has_less_one_role(roles, ['TEACHER', 'ASSISTANT', 'REVIEWER'])
+
+        if academy := self.request.GET.get('academy'):
+            pks = academy.split(',')
+            ids = [int(x) for x in pks if x.isnumeric()]
+            slugs = [x for x in pks if not x.isnumeric()]
+            items = items.filter(
+                Q(cohort__academy__slug__in=slugs) | Q(cohort__academy__id__in=ids) | Q(cohort__isnull=True))
+
+        if is_teacher and (user := self.request.GET.get('user')):
             items = items.filter(user__id__in=user.split(','))
 
-        # tasks these cohorts (not the users, but the tasts belong to the cohort)
-        cohort = request.GET.get('cohort', None)
-        if cohort is not None:
+        # tasks these cohorts (not the users, but the tasks belong to the cohort)
+        if is_teacher and (cohort := self.request.GET.get('cohort')):
             cohorts = cohort.split(',')
             ids = [x for x in cohorts if x.isnumeric()]
             slugs = [x for x in cohorts if not x.isnumeric()]
             items = items.filter(Q(cohort__slug__in=slugs) | Q(cohort__id__in=ids))
 
         # tasks from users that belong to these cohort
-        stu_cohort = request.GET.get('stu_cohort', None)
-        if stu_cohort is not None:
-            ids = stu_cohort.split(',')
+        if cohort := self.request.GET.get('cohort'):
+            if cohort == 'null':
+                items = items.filter(cohort__isnull=True)
 
-            stu_cohorts = stu_cohort.split(',')
-            ids = [x for x in stu_cohorts if x.isnumeric()]
-            slugs = [x for x in stu_cohorts if not x.isnumeric()]
+            else:
+                ids = cohort.split(',')
+                stu_cohorts = cohort.split(',')
+                ids = [x for x in stu_cohorts if x.isnumeric()]
+                slugs = [x for x in stu_cohorts if not x.isnumeric()]
 
-            items = items.filter(
-                Q(user__cohortuser__cohort__id__in=ids) | Q(user__cohortuser__cohort__slug__in=slugs),
-                user__cohortuser__role='STUDENT',
-            )
+                items = items.filter(
+                    Q(user__cohortuser__cohort__id__in=ids) | Q(user__cohortuser__cohort__slug__in=slugs),
+                    user__cohortuser__role='STUDENT',
+                )
 
-        edu_status = request.GET.get('edu_status', None)
-        if edu_status is not None:
+        if is_teacher and (edu_status := self.request.GET.get('edu_status')):
             items = items.filter(user__cohortuser__educational_status__in=edu_status.split(','))
 
         # tasks from users that belong to these cohort
-        teacher = request.GET.get('teacher', None)
-        if teacher is not None:
+        if is_teacher and (teacher := self.request.GET.get('teacher', None)):
             teacher_cohorts = CohortUser.objects.filter(user__id__in=teacher.split(','),
                                                         role='TEACHER').values_list('cohort__id', flat=True)
             items = items.filter(user__cohortuser__cohort__id__in=teacher_cohorts,
                                  user__cohortuser__role='STUDENT').distinct()
 
-        task_status = request.GET.get('task_status', None)
-        if task_status is not None:
+        if task_status := self.request.GET.get('task_status'):
             items = items.filter(task_status__in=task_status.split(','))
 
-        revision_status = request.GET.get('revision_status', None)
-        if revision_status is not None:
+        if revision_status := self.request.GET.get('revision_status'):
             items = items.filter(revision_status__in=revision_status.split(','))
 
-        task_type = request.GET.get('task_type', None)
-        if task_type is not None:
+        if task_type := self.request.GET.get('task_type'):
             items = items.filter(task_type__in=task_type.split(','))
 
-        items = items.order_by('created_at')
+        return items
+
+    def generic_get(self, initial_queryset: Callable[[], QuerySet[Task]], roles=[], academy_id=None):
+        handler = self.extensions(self.request)
+        cache = handler.cache.get()
+        if cache is not None:
+            return Response(cache, status=status.HTTP_200_OK)
+
+        items = initial_queryset()
+
+        user_roles = []
+
+        if academy_id:
+            user_roles = self._get_roles(academy_id)
+            self._has_permission(user_roles, roles)
+
+        items = self._apply_filters(items, user_roles)
+        items = handler.queryset(items)
 
         serializer = TaskGETSerializer(items, many=True)
-        return Response(serializer.data)
+        return handler.response(serializer.data)
+
+    def generic_get_by_id(self, task_id, user_id):
+        handler = self.extensions(self.request)
+        cache = handler.cache.get()
+        if cache is not None:
+            return Response(cache, status=status.HTTP_200_OK)
+
+        if task_id is not None:
+            item = Task.objects.filter(id=task_id, user__id=user_id).first()
+            if item is None:
+                raise ValidationException('Task not found', code=404, slug='task-not-found')
+
+            serializer = TaskGETSerializer(item, many=False)
+            return Response(serializer.data)
+
+
+class TaskTeacherView(GenericTaskView):
+    @capable_of('review_task')
+    def get(self, _, academy_id=None):
+        def initial_queryset():
+            """Keep this function distinct to prevent use the database if exists elements in the cache"""
+
+            return Task.objects.filter(Q(cohort__academy__id=academy_id) | Q(cohort__isnull=True))
+
+        roles = ['TEACHER', 'ASSISTANT', 'REVIEWER']
+        return self.generic_get(initial_queryset, roles, academy_id)
 
 
 @api_view(['POST'])
@@ -281,48 +340,46 @@ class CohortTaskView(APIView, GenerateLookupsMixin):
         return handler.response(serializer.data)
 
 
-class TaskMeView(APIView):
+class AcademyTaskView(GenericTaskView):
     """
     List all snippets, or create a new snippet.
     """
-    def get(self, request, task_id=None, user_id=None):
-        if not user_id:
-            user_id = request.user.id
+    def get(self, _, task_id=None, user_id=None):
+        def initial_queryset():
+            """Keep this function distinct to prevent use the database if exists elements in the cache"""
 
-        if task_id is not None:
-            item = Task.objects.filter(id=task_id, user__id=user_id).first()
-            if item is None:
-                raise ValidationException('Task not found', code=404, slug='task-not-found')
+            lookup = {}
 
-            serializer = TaskGETSerializer(item, many=False)
-            return Response(serializer.data)
+            if task_id:
+                lookup['task__id'] = task_id
 
-        items = Task.objects.filter(user__id=user_id)
+            if task_id:
+                lookup['user__id'] = user_id
 
-        task_type = request.GET.get('task_type', None)
-        if task_type is not None:
-            items = items.filter(task_type__in=task_type.split(','))
+            return Task.objects.filter(**lookup)
 
-        task_status = request.GET.get('task_status', None)
-        if task_status is not None:
-            items = items.filter(task_status__in=task_status.split(','))
+        if task_id:
+            return self.generic_get_by_id(task_id, user_id)
 
-        revision_status = request.GET.get('revision_status', None)
-        if revision_status is not None:
-            items = items.filter(revision_status__in=revision_status.split(','))
+        roles = []
+        return self.generic_get(initial_queryset, roles)
 
-        cohort = request.GET.get('cohort', None)
-        if cohort is not None:
-            if cohort == 'null':
-                items = items.filter(cohort__isnull=True)
-            else:
-                cohorts = cohort.split(',')
-                ids = [x for x in cohorts if x.isnumeric()]
-                slugs = [x for x in cohorts if not x.isnumeric()]
-                items = items.filter(Q(cohort__slug__in=slugs) | Q(cohort__id__in=ids))
 
-        serializer = TaskGETSerializer(items, many=True)
-        return Response(serializer.data)
+class TaskMeView(GenericTaskView):
+    """
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, task_id=None):
+        def initial_queryset():
+            """Keep this function distinct to prevent use the database if exists elements in the cache"""
+
+            return Task.objects.filter(user__id=request.user.id)
+
+        if task_id:
+            return self.generic_get_by_id(task_id, request.user.id)
+
+        roles = []
+        return self.generic_get(initial_queryset, roles)
 
     def put(self, request, task_id=None):
         def update(_req, data, _id=None, only_validate=True):
@@ -367,12 +424,9 @@ class TaskMeView(APIView):
 
             return Response(updated_tasks, status=status.HTTP_200_OK)
 
-    def post(self, request, user_id=None):
-
+    def post(self, request):
         # only create tasks for yourself
-        if user_id is None:
-            user_id = request.user.id
-
+        user_id = request.user.id
         payload = request.data
 
         if isinstance(request.data, list) == False:
