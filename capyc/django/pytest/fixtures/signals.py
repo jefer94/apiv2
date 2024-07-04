@@ -1,6 +1,7 @@
 """
 QuerySet fixtures.
 """
+
 # not working yet
 import importlib
 from typing import Generator, final
@@ -22,16 +23,16 @@ from django.db.models.signals import (
 )
 from django.dispatch import Signal
 
-__all__ = ['signals', 'Signals', 'signals_map']
+__all__ = ["signals", "Signals", "signals_map"]
 
 
 def check_path(dir: str, pattern: str):
-    linux_path = dir.replace('\\', '/')
-    windows_path = dir.replace('/', '\\')
+    linux_path = dir.replace("\\", "/")
+    windows_path = dir.replace("/", "\\")
     return linux_path not in dir and windows_path not in dir
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def signals_map():
     import os
 
@@ -44,42 +45,45 @@ def signals_map():
     # Walk through the current directory and its subdirectories
     for folder, _, files in os.walk(root_directory):
         for file in files:
-            if file == 'signals.py':
+            if file == "signals.py":
                 signal_files.append(os.path.join(folder, file))
 
-    if '/' in root_directory:
-        separator = '/'
+    if "/" in root_directory:
+        separator = "/"
     else:
-        separator = '\\'
+        separator = "\\"
 
     res = {
         # these signals cannot be mocked by monkeypatch
-        'django.db.models.signals.pre_init': pre_init,
-        'django.db.models.signals.post_init': post_init,
-        'django.db.models.signals.pre_save': pre_save,
-        'django.db.models.signals.post_save': post_save,
-        'django.db.models.signals.pre_delete': pre_delete,
-        'django.db.models.signals.post_delete': post_delete,
-        'django.db.models.signals.m2m_changed': m2m_changed,
-        'django.db.models.signals.pre_migrate': pre_migrate,
-        'django.db.models.signals.post_migrate': post_migrate,
+        "django.db.models.signals.pre_init": pre_init,
+        "django.db.models.signals.post_init": post_init,
+        "django.db.models.signals.pre_save": pre_save,
+        "django.db.models.signals.post_save": post_save,
+        "django.db.models.signals.pre_delete": pre_delete,
+        "django.db.models.signals.post_delete": post_delete,
+        "django.db.models.signals.m2m_changed": m2m_changed,
+        "django.db.models.signals.pre_migrate": pre_migrate,
+        "django.db.models.signals.post_migrate": post_migrate,
     }
 
     signal_files = [
-        '.'.join(x.replace(root_directory + separator, '').replace('.py', '').split(separator)) for x in signal_files
-        if check_path(dir=x, pattern='/bc/django/') and check_path(dir=x, pattern='.venv')
-        and check_path(dir=x, pattern='.env')
+        ".".join(x.replace(root_directory + separator, "").replace(".py", "").split(separator))
+        for x in signal_files
+        if check_path(dir=x, pattern="/bc/django/")
+        and check_path(dir=x, pattern=".venv")
+        and check_path(dir=x, pattern=".env")
     ]
 
     for module_path in signal_files:
         module = importlib.import_module(module_path)
         signals = [
-            x for x in dir(module)
-            if x[0] != '_' and (isinstance(getattr(module, x), Signal) or isinstance(getattr(module, x), ModelSignal))
+            x
+            for x in dir(module)
+            if x[0] != "_" and (isinstance(getattr(module, x), Signal) or isinstance(getattr(module, x), ModelSignal))
         ]
 
         for signal_path in signals:
-            res[f'{module_path}.{signal_path}'] = getattr(module, signal_path)
+            res[f"{module_path}.{signal_path}"] = getattr(module, signal_path)
 
     yield res
 
@@ -108,12 +112,12 @@ class Signals:
         """
 
         # Mock the functions to disable signals
-        self._monkeypatch.setattr(Signal, 'send', lambda *args, **kwargs: None)
-        self._monkeypatch.setattr(Signal, 'send_robust', lambda *args, **kwargs: None)
+        self._monkeypatch.setattr(Signal, "send", lambda *args, **kwargs: None)
+        self._monkeypatch.setattr(Signal, "send_robust", lambda *args, **kwargs: None)
 
         # Mock the functions to disable signals
-        self._monkeypatch.setattr(ModelSignal, 'send', lambda *args, **kwargs: None)
-        self._monkeypatch.setattr(ModelSignal, 'send_robust', lambda *args, **kwargs: None)
+        self._monkeypatch.setattr(ModelSignal, "send", lambda *args, **kwargs: None)
+        self._monkeypatch.setattr(ModelSignal, "send_robust", lambda *args, **kwargs: None)
 
     def enable(self, *to_enable, debug=False):
         """
@@ -127,11 +131,11 @@ class Signals:
             None
         """
 
-        self._monkeypatch.setattr(Signal, 'send', self._original_signal_send)
-        self._monkeypatch.setattr(Signal, 'send_robust', self._original_signal_send_robust)
+        self._monkeypatch.setattr(Signal, "send", self._original_signal_send)
+        self._monkeypatch.setattr(Signal, "send_robust", self._original_signal_send_robust)
 
-        self._monkeypatch.setattr(ModelSignal, 'send', self._original_model_signal_send)
-        self._monkeypatch.setattr(ModelSignal, 'send_robust', self._original_model_signal_send_robust)
+        self._monkeypatch.setattr(ModelSignal, "send", self._original_model_signal_send)
+        self._monkeypatch.setattr(ModelSignal, "send_robust", self._original_model_signal_send_robust)
 
         if to_enable or debug:
             to_disable = [x for x in self._signals_map if x not in to_enable]
@@ -144,21 +148,21 @@ class Signals:
                         if debug:
                             print(module)
                             try:
-                                print('  args\n    ', args)
+                                print("  args\n    ", args)
                             except Exception:
                                 pass
 
                             try:
-                                print('  kwargs\n    ', kwargs)
+                                print("  kwargs\n    ", kwargs)
                             except Exception:
                                 pass
 
-                            print('\n')
+                            print("\n")
 
                     self._monkeypatch.setattr(module, send_mock)
 
-                apply_mock(f'{signal}.send')
-                apply_mock(f'{signal}.send_robust')
+                apply_mock(f"{signal}.send")
+                apply_mock(f"{signal}.send_robust")
 
 
 @pytest.fixture
