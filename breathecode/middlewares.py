@@ -167,7 +167,7 @@ def detect_pagination_issues_middleware(get_response):
         if (path, method) in NO_PAGINATED:
             return
 
-        is_paginated = request.GET.get("limit") and request.GET.get("offset")
+        is_paginated = request.GET.get("limit") is not None or request.GET.get("offset") is not None
 
         if is_paginated is False and NoPagination.objects.filter(path=path, method=method).exists() is False:
             NO_PAGINATED.add((path, method))

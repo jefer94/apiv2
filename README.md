@@ -26,14 +26,13 @@ Check out the [Postman docs](https://documenter.getpostman.com/view/2432393/T1LP
 
 The documentation is divided into several sections:
 
-
--   [Run 4Geeks in Codespaces (no installation)](#run-4geeks-in-codespaces-no-instalation)
--   [Install Docker](#install-docker)
--   [Run 4Geeks API as docker service](#run-4geeks-api-as-docker-service)
--   [Run 4Geeks in your local machine](#run-4geeks-api-in-your-local-machine)
-    -   [Installation](#installation)
-    -   [Run 4Geeks API](#run-4geeks-api)
--   [Run tests](#run-tests)
+- [Run 4Geeks in Codespaces (no installation)](#run-4geeks-in-codespaces-no-instalation)
+- [Install Docker](#install-docker)
+- [Run 4Geeks API as docker service](#run-4geeks-api-as-docker-service)
+- [Run 4Geeks in your local machine](#run-4geeks-api-in-your-local-machine)
+  - [Installation](#installation)
+  - [Run 4Geeks API](#run-4geeks-api)
+- [Run tests](#run-tests)
 
 ## Run 4Geeks in Codespaces (no installation)
 

@@ -18,7 +18,9 @@ from .views import (
     CohortUserView,
     MeCohortUserHistoryView,
     PublicCohortUserView,
+    PublicCohortUserView2,
     PublicCohortView,
+    PublicCohortView2,
     SyllabusAssetView,
     SyllabusScheduleView,
     SyllabusVersionCSVView,
@@ -42,6 +44,7 @@ urlpatterns = [
     path("public/syllabus", get_public_syllabus),
     # deprecated methods, soon to be deleted
     path("cohort/all", PublicCohortView.as_view(), name="cohort_all"),
+    path("cohort/all2", PublicCohortView2.as_view(), name="cohort_all2"),
     path("cohort/user", CohortUserView.as_view(), name="cohort_user"),
     path("cohort/<int:cohort_id>/join", CohortJoinView.as_view(), name="cohort_id_join"),
     path("cohort/<int:cohort_id>/user/<int:user_id>", CohortUserView.as_view(), name="cohort_id_user_id"),
@@ -163,4 +166,5 @@ urlpatterns = [
     path("admin/syllabus/asset/<str:asset_slug>", SyllabusAssetView.as_view(), name="syllabus_asset"),
     # Public Endpoints anyone can call
     path("public/cohort/user", PublicCohortUserView.as_view(), name="public_cohort_user"),
+    path("public/cohort/user2", PublicCohortUserView2.as_view(), name="public_cohort_user2"),
 ]

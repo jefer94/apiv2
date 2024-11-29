@@ -1,6 +1,7 @@
 import logging
 from collections import OrderedDict
 
+import capyc.django.serializer as capy
 from capyc.rest_framework.exceptions import ValidationException
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -8,16 +9,18 @@ from django.db.models import Q
 from breathecode.admissions.actions import ImportCohortTimeSlots
 from breathecode.assignments.models import Task
 from breathecode.assignments.serializers import TaskGETSmallSerializer
-from breathecode.authenticate.models import CredentialsGithub, ProfileAcademy
+from breathecode.authenticate.models import CredentialsGithub, Profile, ProfileAcademy
 from breathecode.utils import localize_query, serializers, serpy
 
 from .actions import haversine, test_syllabus
 from .models import (
     COHORT_STAGE,
     Academy,
+    City,
     Cohort,
     CohortTimeSlot,
     CohortUser,
+    Country,
     Syllabus,
     SyllabusSchedule,
     SyllabusScheduleTimeSlot,
@@ -25,6 +28,129 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class CapyCountrySerializer(capy.Serializer):
+    model = Country
+    # path = "/permission"
+    fields = {"default": ("code", "name")}
+
+
+class CapyCitySerializer(capy.Serializer):
+    model = City
+    # path = "/permission"
+    fields = {"default": ("name",)}
+
+
+class CapyAcademySerializer(capy.Serializer):
+    model = Academy
+    # path = "/permission"
+    fields = {"default": ("id", "slug", "name", "country", "city", "logo_url", "is_hidden_on_prework")}
+
+
+class CapyCohortTimeSlotSerializer(capy.Serializer):
+    model = CohortTimeSlot
+    # path = "/permission"
+    fields = {"default": ("id", "starting_at", "ending_at", "recurrent", "recurrency_type")}
+    filters = ("cohort",)
+
+
+class CapyPublicProfileSerializer(capy.Serializer):
+    model = Profile
+    # path = "/permission"
+    fields = {"default": ("avatar_url",)}
+
+
+class CapyPublicUserSerializer(capy.Serializer):
+    model = User
+    # path = "/permission"
+    fields = {"default": ("id", "first_name", "last_name", "profile"), "profile": ("profile[]",)}
+    profile = CapyPublicProfileSerializer
+
+
+class CapySyllabusSerializer(capy.Serializer):
+    model = Syllabus
+    # path = "/permission"
+    fields = {"default": ()}
+    profile = CapyPublicProfileSerializer
+    filters = ("slug",)
+
+
+# class GetSmallSyllabusScheduleSerializer(serpy.Serializer):
+#     id = serpy.Field()
+#     name = serpy.Field()
+#     syllabus = serpy.MethodField()
+
+#     def get_syllabus(self, obj):
+#         return obj.syllabus.id if obj.syllabus else None
+
+
+class CapySyllabusScheduleSerializer(capy.Serializer):
+    model = SyllabusSchedule
+    # path = "/permission"
+    fields = {"default": tuple()}
+    filters = ("syllabus",)
+    syllabus = CapySyllabusSerializer
+
+
+class CapyVoidSyllabusVersionSerializer(capy.Serializer):
+    model = SyllabusVersion
+    # path = "/permission"
+    fields = {"default": tuple()}
+    filters = ("syllabus",)
+    syllabus = CapySyllabusSerializer
+
+
+class CapyPublicCohortSerializer(capy.Serializer):
+    model = Cohort
+    # path = "/permission"
+    fields = {
+        "default": (
+            "id",
+            "slug",
+            "name",
+            "never_ends",
+            "private",
+            "language",
+            "kickoff_date",
+            "ending_date",
+            "remote_available",
+            "stage",
+            "available_as_saas",
+            "timezone",
+            "academy",
+        ),
+        "syllabus_version": ("syllabus_version[]",),
+        "academy": ("academy[]",),
+        "schedule": ("schedule[]",),
+    }
+    rewrites = {
+        "cohorttimeslot_set": "timeslots",
+    }
+    preselected = ("stage", "history_log")
+    syllabus_version = CapyVoidSyllabusVersionSerializer
+    schedule = CapySyllabusScheduleSerializer
+    timeslots = CapyCohortTimeSlotSerializer
+
+
+class CapyPublicCohortUserSerializer(capy.Serializer):
+    model = CohortUser
+    # path = "/permission"
+    fields = {"default": ("id", "role", "user"), "user": ("user[]",)}
+
+    rewrites = {
+        # "group_set": "groups",
+    }
+    filters = (
+        "cohort",
+        "role",
+        "finantial_status",
+        "educational_status",
+        "cohort",
+        "user",
+    )
+    depth = 2
+    user = CapyPublicUserSerializer
 
 
 class CountrySerializer(serpy.Serializer):

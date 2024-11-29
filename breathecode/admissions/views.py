@@ -51,6 +51,8 @@ from .models import (
 from .serializers import (
     AcademyReportSerializer,
     AcademySerializer,
+    CapyPublicCohortSerializer,
+    CapyPublicCohortUserSerializer,
     CohortPUTSerializer,
     CohortSerializer,
     CohortTimeSlotSerializer,
@@ -350,6 +352,14 @@ class PublicCohortView(APIView):
         data = sorted(serializer.data, key=lambda x: x["distance"] or float("inf")) if coordinates else serializer.data
 
         return handler.response(data)
+
+
+class PublicCohortView2(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, id=None):
+        serializer = CapyPublicCohortSerializer(request=request)
+        return serializer.filter()
 
 
 class AcademyReportView(APIView):
@@ -1936,6 +1946,17 @@ class PublicCohortUserView(APIView, GenerateLookupsMixin):
         items = handler.queryset(items)
         serializer = GetPublicCohortUserSerializer(items, many=True)
         return handler.response(serializer.data)
+
+
+class PublicCohortUserView2(APIView, GenerateLookupsMixin):
+    """List all snippets, or create a new snippet."""
+
+    extensions = APIViewExtensions(cache=CohortUserCache, paginate=True)
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        serializer = CapyPublicCohortUserSerializer(request=request)
+        return serializer.filter()
 
 
 class AcademyCohortHistoryView(APIView):
