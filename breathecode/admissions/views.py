@@ -1844,6 +1844,9 @@ class SyllabusVersionCSVView(APIView):
         # Write the data rows for each day
         for day in sorted(syllabus_version.json["days"], key=lambda x: x["position"]):
             week_number = math.ceil(cumulative_days / class_days_per_week)
+            if "technologies" not in day:
+                day["technologies"] = []
+
             if lang == "es":
                 writer.writerow(
                     [
@@ -1866,7 +1869,7 @@ class SyllabusVersionCSVView(APIView):
                         day.get("teacher_instructions", ""),
                     ]
                 )
-            cumulative_days += day["duration_in_days"]
+            cumulative_days += day["duration_in_days"] if "duration_in_days" in day else 1
         return response
 
 
