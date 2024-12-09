@@ -5,9 +5,15 @@ Test /answer
 import capyc.pytest as capy
 from django.urls.base import reverse_lazy
 from django.utils import timezone
+import pytest
 from rest_framework import status
 
 UTC_NOW = timezone.now()
+
+
+@pytest.fixture(autouse=True)
+def setup(db):
+    yield
 
 
 def test_list_op_types(client: capy.Client):

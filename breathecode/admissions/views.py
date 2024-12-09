@@ -51,6 +51,7 @@ from .models import (
 from .serializers import (
     AcademyReportSerializer,
     AcademySerializer,
+    CapyCohortTimeSlotSerializer,
     CapyPublicCohortSerializer,
     CapyPublicCohortUserSerializer,
     CohortPUTSerializer,
@@ -354,12 +355,41 @@ class PublicCohortView(APIView):
         return handler.response(data)
 
 
-class PublicCohortView2(APIView):
+class PublicCohortV2View(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, id=None):
         serializer = CapyPublicCohortSerializer(request=request)
         return serializer.filter()
+
+
+class PublicCohortUserV2View(APIView, GenerateLookupsMixin):
+    """List all snippets, or create a new snippet."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        serializer = CapyPublicCohortUserSerializer(request=request)
+        return serializer.filter()
+
+
+class PublicCohortTimeSlotV2View(APIView, GenerateLookupsMixin):
+    """List all snippets, or create a new snippet."""
+
+    extensions = APIViewExtensions(cache=CohortUserCache, paginate=True)
+    permission_classes = [AllowAny]
+
+    def get(self, request, id=None, cohort_id=None):
+        serializer = CapyCohortTimeSlotSerializer(request=request)
+
+        if id:
+            return serializer.get(cohort=id)
+
+        filters = {}
+        if cohort_id:
+            filters["cohort"] = cohort_id
+
+        return serializer.filter(**filters)
 
 
 class AcademyReportView(APIView):
@@ -1949,17 +1979,6 @@ class PublicCohortUserView(APIView, GenerateLookupsMixin):
         items = handler.queryset(items)
         serializer = GetPublicCohortUserSerializer(items, many=True)
         return handler.response(serializer.data)
-
-
-class PublicCohortUserView2(APIView, GenerateLookupsMixin):
-    """List all snippets, or create a new snippet."""
-
-    extensions = APIViewExtensions(cache=CohortUserCache, paginate=True)
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        serializer = CapyPublicCohortUserSerializer(request=request)
-        return serializer.filter()
 
 
 class AcademyCohortHistoryView(APIView):

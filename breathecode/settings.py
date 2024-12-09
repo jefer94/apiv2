@@ -553,6 +553,20 @@ CHANNEL_LAYERS = {
     },
 }
 
+CAPYC = {
+    "pagination": {
+        "pks": 200,
+        "pages": 20,
+    },
+    "cache": {
+        "enabled": False,
+    },
+    "compression": {
+        "enabled": False,
+        "min_kb_size": 10,
+    },
+}
+
 heroku_redis_ssl_host = {
     "address": REDIS_URL,  # The 'rediss' schema denotes a SSL connection.
 }

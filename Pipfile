@@ -62,6 +62,8 @@ mypy = "*"
 google-api-python-client-stubs = "*"
 django-stubs = "*"
 djangorestframework-stubs = "*"
+pytest-django = "*"
+mixer = "*"
 
 [packages]
 django = "*"
@@ -75,8 +77,6 @@ django-cors-headers = "*"
 django-phonenumber-field = {extras = ["phonenumberslite"] }
 activecampaign-python = "*"
 schema = "*"
-mixer = "*"
-pytest-django = "*"
 pygithub = "*"
 google-cloud-datastore = "*"
 pyfcm = "*"

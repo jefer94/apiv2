@@ -46,11 +46,12 @@ class CapyAcademySerializer(capy.Serializer):
     model = Academy
     # path = "/permission"
     fields = {"default": ("id", "slug", "name", "country", "city", "logo_url", "is_hidden_on_prework")}
+    filters = ("slug",)
 
 
 class CapyCohortTimeSlotSerializer(capy.Serializer):
     model = CohortTimeSlot
-    # path = "/permission"
+    path = "/v2/admissions/public/cohorttimeslot"
     fields = {"default": ("id", "starting_at", "ending_at", "recurrent", "recurrency_type")}
     filters = ("cohort",)
 
@@ -88,7 +89,7 @@ class CapySyllabusSerializer(capy.Serializer):
 class CapySyllabusScheduleSerializer(capy.Serializer):
     model = SyllabusSchedule
     # path = "/permission"
-    fields = {"default": tuple()}
+    fields = {"default": ("id", "name", "schedule_type", "description")}
     filters = ("syllabus",)
     syllabus = CapySyllabusSerializer
 
@@ -96,14 +97,17 @@ class CapySyllabusScheduleSerializer(capy.Serializer):
 class CapyVoidSyllabusVersionSerializer(capy.Serializer):
     model = SyllabusVersion
     # path = "/permission"
-    fields = {"default": tuple()}
+    fields = {
+        "default": ("id", "version", "status"),
+        "integrity": ("integrity_status", "integrity_check_at", "integrity_report"),  # inherit this fails
+    }
     filters = ("syllabus",)
     syllabus = CapySyllabusSerializer
 
 
 class CapyPublicCohortSerializer(capy.Serializer):
     model = Cohort
-    # path = "/permission"
+    path = "/v2/admissions/public/cohort"
     fields = {
         "default": (
             "id",
@@ -120,9 +124,10 @@ class CapyPublicCohortSerializer(capy.Serializer):
             "timezone",
             "academy",
         ),
-        "syllabus_version": ("syllabus_version[]",),
+        "syllabus_version": ("syllabus_version[integrity]",),
         "academy": ("academy[]",),
         "schedule": ("schedule[]",),
+        "timeslots": ("timeslots[]",),
     }
     rewrites = {
         "cohorttimeslot_set": "timeslots",
@@ -131,6 +136,7 @@ class CapyPublicCohortSerializer(capy.Serializer):
     syllabus_version = CapyVoidSyllabusVersionSerializer
     schedule = CapySyllabusScheduleSerializer
     timeslots = CapyCohortTimeSlotSerializer
+    academy = CapyAcademySerializer
 
 
 class CapyPublicCohortUserSerializer(capy.Serializer):

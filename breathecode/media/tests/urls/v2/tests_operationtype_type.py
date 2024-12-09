@@ -11,6 +11,11 @@ from rest_framework import status
 UTC_NOW = timezone.now()
 
 
+@pytest.fixture(autouse=True)
+def setup(db):
+    yield
+
+
 @pytest.mark.parametrize(
     "op_type, expected",
     [
