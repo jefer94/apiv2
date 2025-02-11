@@ -38,6 +38,20 @@ def user_serializer(user):
     }
 
 
+def bag_serializer(bag):
+    return {
+        "id": bag.id,
+        "status": bag.status,
+        "type": bag.type,
+        "is_recurrent": bag.is_recurrent,
+        "how_many_installments": bag.how_many_installments,
+        "amount_per_month": bag.amount_per_month,
+        "amount_per_quarter": bag.amount_per_quarter,
+        "amount_per_half": bag.amount_per_half,
+        "amount_per_year": bag.amount_per_year,
+    }
+
+
 def invoice_serializer(self, invoice, currency, user):
     return {
         "amount": invoice.amount,
@@ -45,6 +59,7 @@ def invoice_serializer(self, invoice, currency, user):
         "paid_at": self.bc.datetime.to_iso_string(invoice.paid_at),
         "status": invoice.status,
         "user": user_serializer(user),
+        "bag": bag_serializer(invoice.bag),
     }
 
 

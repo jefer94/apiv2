@@ -1166,9 +1166,12 @@ class PlanFinancing(AbstractIOweYou):
         default=None, null=True, blank=False, help_text="Plan expires at, after this date the plan will not be renewed"
     )
 
-    # this remember the current price per month
-    monthly_price = models.FloatField(
-        default=0, help_text="Monthly price, we keep this to avoid we changes him/her amount"
+    # This field stores the current monthly price
+    monthly_price = models.FloatField(default=0, help_text="Monthly price, stored to prevent changes to the amount")
+
+    # This field stores the total number of installments
+    how_many_installments = models.FloatField(
+        default=0, help_text="Total number of installments, stored to prevent changes to the amount"
     )
 
     def __str__(self) -> str:

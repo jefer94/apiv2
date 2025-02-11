@@ -214,6 +214,13 @@ class GetInvoiceSerializer(GetInvoiceSmallSerializer):
     paid_at = serpy.Field()
     status = serpy.Field()
     currency = GetCurrencySmallSerializer()
+    bag = serpy.MethodField()
+
+    def get_bag(self, obj):
+        if not obj.bag:
+            return None
+
+        return GetSmallBagSerializer(obj.bag, many=False).data
 
 
 class GetMentorshipServiceSerializer(serpy.Serializer):
@@ -405,8 +412,19 @@ class GetSubscriptionSerializer(GetAbstractIOweYouSerializer):
         return GetServiceItemSerializer(obj.service_items.filter(), many=True).data
 
 
-class GetBagSerializer(serpy.Serializer):
+class GetSmallBagSerializer(serpy.Serializer):
     id = serpy.Field()
+    status = serpy.Field()
+    type = serpy.Field()
+    is_recurrent = serpy.Field()
+    amount_per_month = serpy.Field()
+    amount_per_quarter = serpy.Field()
+    amount_per_half = serpy.Field()
+    amount_per_year = serpy.Field()
+    how_many_installments = serpy.Field()
+
+
+class GetBagSerializer(GetSmallBagSerializer):
     service_items = serpy.MethodField()
     plans = serpy.MethodField()
     coupons = serpy.MethodField()
@@ -414,10 +432,6 @@ class GetBagSerializer(serpy.Serializer):
     type = serpy.Field()
     is_recurrent = serpy.Field()
     was_delivered = serpy.Field()
-    amount_per_month = serpy.Field()
-    amount_per_quarter = serpy.Field()
-    amount_per_half = serpy.Field()
-    amount_per_year = serpy.Field()
     token = serpy.Field()
     expires_at = serpy.Field()
 

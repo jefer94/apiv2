@@ -194,11 +194,13 @@ class PaymentsTestSuite(PaymentsTestCase):
     @patch.object(timezone, "now", MagicMock(return_value=UTC_NOW))
     @patch("breathecode.payments.tasks.build_service_stock_scheduler_from_plan_financing.delay", MagicMock())
     def test_subscription_was_created(self):
+        how_many_installments = random.randint(1, 12)
         amount = (random.random() * 99) + 1
         bag = {
             "status": "PAID",
             "was_delivered": False,
             "chosen_period": random.choice(["MONTH", "QUARTER", "HALF", "YEAR"]),
+            "how_many_installments": how_many_installments,
         }
         invoice = {"status": "FULFILLED", "amount": amount}
         plan = {"is_renewable": False}
@@ -253,6 +255,7 @@ class PaymentsTestSuite(PaymentsTestCase):
                         "next_payment_at": model.invoice.paid_at + relativedelta(months=1),
                         "plan_expires_at": model.invoice.paid_at
                         + calculate_relative_delta(model.plan.time_of_life, model.plan.time_of_life_unit),
+                        "how_many_installments": how_many_installments,
                     }
                 ),
             ],
@@ -275,11 +278,13 @@ class PaymentsTestSuite(PaymentsTestCase):
     @patch.object(timezone, "now", MagicMock(return_value=UTC_NOW))
     @patch("breathecode.payments.tasks.build_service_stock_scheduler_from_plan_financing.delay", MagicMock())
     def test_subscription_was_created__bag_with_cohort(self):
+        how_many_installments = random.randint(1, 12)
         amount = (random.random() * 99) + 1
         bag = {
             "status": "PAID",
             "was_delivered": False,
             "chosen_period": random.choice(["MONTH", "QUARTER", "HALF", "YEAR"]),
+            "how_many_installments": how_many_installments,
         }
         invoice = {"status": "FULFILLED", "amount": amount}
         plan = {"is_renewable": False}
@@ -341,6 +346,7 @@ class PaymentsTestSuite(PaymentsTestCase):
                         "next_payment_at": model.invoice.paid_at + relativedelta(months=1),
                         "plan_expires_at": model.invoice.paid_at
                         + calculate_relative_delta(model.plan.time_of_life, model.plan.time_of_life_unit),
+                        "how_many_installments": how_many_installments,
                     }
                 ),
             ],
@@ -368,11 +374,13 @@ class PaymentsTestSuite(PaymentsTestCase):
     @patch.object(timezone, "now", MagicMock(return_value=UTC_NOW))
     @patch("breathecode.payments.tasks.build_service_stock_scheduler_from_plan_financing.delay", MagicMock())
     def test_subscription_was_created__bag_with_event_type_set(self):
+        how_many_installments = random.randint(1, 12)
         amount = (random.random() * 99) + 1
         bag = {
             "status": "PAID",
             "was_delivered": False,
             "chosen_period": random.choice(["MONTH", "QUARTER", "HALF", "YEAR"]),
+            "how_many_installments": how_many_installments,
         }
         invoice = {"status": "FULFILLED", "amount": amount}
         plan = {"is_renewable": False}
@@ -428,6 +436,7 @@ class PaymentsTestSuite(PaymentsTestCase):
                         "next_payment_at": model.invoice.paid_at + relativedelta(months=1),
                         "plan_expires_at": model.invoice.paid_at
                         + calculate_relative_delta(model.plan.time_of_life, model.plan.time_of_life_unit),
+                        "how_many_installments": how_many_installments,
                     }
                 ),
             ],
@@ -456,10 +465,12 @@ class PaymentsTestSuite(PaymentsTestCase):
     @patch("breathecode.payments.tasks.build_service_stock_scheduler_from_plan_financing.delay", MagicMock())
     def test_subscription_was_created__bag_with_mentorship_service_set(self):
         amount = (random.random() * 99) + 1
+        how_many_installments = random.randint(1, 12)
         bag = {
             "status": "PAID",
             "was_delivered": False,
             "chosen_period": random.choice(["MONTH", "QUARTER", "HALF", "YEAR"]),
+            "how_many_installments": how_many_installments,
         }
         invoice = {"status": "FULFILLED", "amount": amount}
         plan = {"is_renewable": False}
@@ -515,6 +526,7 @@ class PaymentsTestSuite(PaymentsTestCase):
                         "next_payment_at": model.invoice.paid_at + relativedelta(months=1),
                         "plan_expires_at": model.invoice.paid_at
                         + calculate_relative_delta(model.plan.time_of_life, model.plan.time_of_life_unit),
+                        "how_many_installments": how_many_installments,
                     }
                 ),
             ],
@@ -543,10 +555,12 @@ class PaymentsTestSuite(PaymentsTestCase):
     @patch("breathecode.payments.tasks.build_service_stock_scheduler_from_plan_financing.delay", MagicMock())
     def test_subscription_was_created__bag_with_mentorship_service_set_with_conversion_info(self):
         amount = (random.random() * 99) + 1
+        how_many_installments = random.randint(1, 12)
         bag = {
             "status": "PAID",
             "was_delivered": False,
             "chosen_period": random.choice(["MONTH", "QUARTER", "HALF", "YEAR"]),
+            "how_many_installments": how_many_installments,
         }
         invoice = {"status": "FULFILLED", "amount": amount}
         plan = {"is_renewable": False}
@@ -602,6 +616,7 @@ class PaymentsTestSuite(PaymentsTestCase):
                         "next_payment_at": model.invoice.paid_at + relativedelta(months=1),
                         "plan_expires_at": model.invoice.paid_at
                         + calculate_relative_delta(model.plan.time_of_life, model.plan.time_of_life_unit),
+                        "how_many_installments": how_many_installments,
                     }
                 ),
             ],

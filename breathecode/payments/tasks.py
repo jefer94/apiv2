@@ -904,6 +904,7 @@ def build_plan_financing(
         monthly_price=invoice.amount,
         status="ACTIVE",
         conversion_info=parsed_conversion_info,
+        how_many_installments=months,
     )
 
     financing.plans.set(plans)

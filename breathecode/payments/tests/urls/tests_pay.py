@@ -67,7 +67,24 @@ def format_coupon(coupon, data={}):
     }
 
 
-def get_serializer(bc, currency, user, coupons=[], data={}):
+def bag_serializer(bag):
+    if bag is None:
+        return None
+
+    return {
+        "id": bag.id,
+        "status": "PAID",
+        "type": bag.type,
+        "is_recurrent": bag.is_recurrent,
+        "how_many_installments": bag.how_many_installments,
+        "amount_per_month": bag.amount_per_month,
+        "amount_per_quarter": bag.amount_per_quarter,
+        "amount_per_half": bag.amount_per_half,
+        "amount_per_year": bag.amount_per_year,
+    }
+
+
+def get_serializer(bc, currency, user, bag=None, coupons=[], data={}):
     return {
         "amount": 0,
         "currency": {
@@ -82,6 +99,7 @@ def get_serializer(bc, currency, user, coupons=[], data={}):
             "last_name": user.last_name,
         },
         "coupons": [format_coupon(x) for x in coupons],
+        "bag": bag_serializer(bag),
         **data,
     }
 
@@ -952,7 +970,7 @@ def test_with_chosen_period__amount_set_with_conversion_info(bc: Breathecode, cl
     response = client.post(url, data, format="json")
 
     json = response.json()
-    expected = get_serializer(bc, model.currency, model.user, data={"amount": math.ceil(amount)})
+    expected = get_serializer(bc, model.currency, model.user, bag=model.bag, data={"amount": math.ceil(amount)})
 
     assert json == expected
     assert response.status_code == status.HTTP_201_CREATED
@@ -1141,7 +1159,7 @@ def test_with_installments(bc: Breathecode, client: APIClient):
     response = client.post(url, data, format="json")
 
     json = response.json()
-    expected = get_serializer(bc, model.currency, model.user, data={"amount": math.ceil(charge)})
+    expected = get_serializer(bc, model.currency, model.user, bag=model.bag, data={"amount": math.ceil(charge)})
 
     assert json == expected
     assert response.status_code == status.HTTP_201_CREATED
@@ -1223,7 +1241,7 @@ def test_with_installments_with_conversion_info(bc: Breathecode, client: APIClie
     response = client.post(url, data, format="json")
 
     json = response.json()
-    expected = get_serializer(bc, model.currency, model.user, data={"amount": math.ceil(charge)})
+    expected = get_serializer(bc, model.currency, model.user, bag=model.bag, data={"amount": math.ceil(charge)})
 
     assert json == expected
     assert response.status_code == status.HTTP_201_CREATED
@@ -1328,7 +1346,9 @@ def test_coupons__with_installments(bc: Breathecode, client: APIClient):
 
     json = response.json()
     total = math.ceil(charge - (charge * random_percent) - discount1 - discount2)
-    expected = get_serializer(bc, model.currency, model.user, coupons=model.coupon, data={"amount": total})
+    expected = get_serializer(
+        bc, model.currency, model.user, bag=model.bag, coupons=model.coupon, data={"amount": total}
+    )
 
     assert json == expected
     assert response.status_code == status.HTTP_201_CREATED
@@ -1421,7 +1441,9 @@ def test_coupons__with_chosen_period__amount_set(bc: Breathecode, client: APICli
 
     json = response.json()
     total = math.ceil(amount - (amount * random_percent) - discount1 - discount2)
-    expected = get_serializer(bc, model.currency, model.user, coupons=model.coupon, data={"amount": total})
+    expected = get_serializer(
+        bc, model.currency, model.user, bag=model.bag, coupons=model.coupon, data={"amount": total}
+    )
 
     assert json == expected
     assert response.status_code == status.HTTP_201_CREATED
@@ -1514,7 +1536,9 @@ def test_coupons__with_chosen_period__amount_set_with_conversion_info(bc: Breath
 
     json = response.json()
     total = math.ceil(amount - (amount * random_percent) - discount1 - discount2)
-    expected = get_serializer(bc, model.currency, model.user, coupons=model.coupon, data={"amount": total})
+    expected = get_serializer(
+        bc, model.currency, model.user, bag=model.bag, coupons=model.coupon, data={"amount": total}
+    )
 
     assert json == expected
     assert response.status_code == status.HTTP_201_CREATED
